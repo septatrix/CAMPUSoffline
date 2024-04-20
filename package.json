@@ -1,0 +1,25 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "nuxt": "^3.11.2",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/object.groupby": "^1.0.4",
+    "ky": "^1.2.3",
+    "object.groupby": "^1.0.3",
+    "p-limit": "^5.0.0",
+    "p-map": "^7.0.2",
+    "p-reduce": "^3.0.0"
+  }
+}

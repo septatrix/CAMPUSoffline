@@ -1,0 +1,15 @@
+GET https://online.rwth-aachen.de/RWTHonline/ee/rest/slc.tm.cp/student/courses
+Accept: application/json
+
+###
+
+GET https://online.rwth-aachen.de/RWTHonline/ee/rest/slc.tm.cp/student/courses/520895
+Accept: application/json
+
+###
+
+GET https://online.rwth-aachen.de/RWTHonline/ee/rest/slc.cm.curriculumposition/positions/520895/course/allCurriculumPositions
+Accept: application/json
+
+# jq -r '.resource[].content.coCurriculumPositionDto.studyNameInfoDto | "\(.name.value) (\(.curriculumVersionIdentification)) \t \(.displayedType.value)"'
+# jq '.resource[].content.coCurriculumPositionDto.curriculumPositionPathDto.path | map(.name.value) | join("/")'
