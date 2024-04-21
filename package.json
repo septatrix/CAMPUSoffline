@@ -16,11 +16,14 @@
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
+    "@types/postcss-url": "^10.0.4",
     "glob": "^10.3.12",
     "ky": "^1.2.3",
     "object.groupby": "^1.0.3",
     "p-limit": "^5.0.0",
     "p-map": "^7.0.2",
-    "p-reduce": "^3.0.0"
+    "p-reduce": "^3.0.0",
+    "postcss-load-config": "^5.0.3",
+    "postcss-url": "^10.1.3"
   }
 }
