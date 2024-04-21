@@ -3,14 +3,9 @@
     <li v-for="parentMod in modules">
       {{ parentMod.name }}
       <ul>
-        <li v-for="(module, id) in parentMod.children">
-          <a
-            :href="`https://online.rwth-aachen.de/RWTHonline/ee/ui/ca2/app/desktop/#/slc.tm.cp/student/courses/${id}`"
-          >
-            {{ module.name }}
-            <br />
-            {{ module }}
-          </a>
+        <li v-for="(module, id) in parentMod.children" :class="module.iconName">
+          <!-- TODO get correct ID and add link to RWTHonline -->
+          {{ module.name }} ({{ id }})
         </li>
       </ul>
     </li>
@@ -19,7 +14,9 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const { data } = await useFetch(`/api/studiesTree/${route.params.id}`);
+const { data } = await useFetch(
+  `/api/semesters/${route.params.term}/studies/${route.params.id}`
+);
 const attributePath = computed(() =>
   (route.params.path as string[]).slice(0, -1)
 );

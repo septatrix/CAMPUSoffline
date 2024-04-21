@@ -12,7 +12,7 @@ export type Resource = {
 };
 
 export type Content = {
-  readonly type: ContentType;
+  readonly type: "model-slc.lib.cm.curriculumposition.coCurriculumPositionDto";
   readonly coCurriculumPositionDto: CoCurriculumPositionDto;
 };
 
@@ -145,9 +145,6 @@ export type StudyNameInfoDto = {
 export type SubjectTypeDto = {
   readonly value: Text;
 };
-
-export type ContentType =
-  "model-slc.lib.cm.curriculumposition.coCurriculumPositionDto";
 
 export type Link = {
   readonly rel: Rel;

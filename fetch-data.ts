@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import os from "node:os";
-import type { ReadableStream } from "node:stream/web";
+import { homedir } from "node:os";
 import ky from "ky";
 import pMap from "p-map";
 
@@ -35,7 +34,7 @@ async function main() {
   const semesterData = await client
     .get("slc.lib.tm/semesters/student")
     .json<{ semesters: { id: number }[] }>()
-    .then((data) => data.semesters.slice(0, 2));
+    .then((data) => data.semesters.slice(0, 3));
   console.log("#Semesters:", semesterData.length);
 
   const semesterIdAndCourseCnt = await pMap(semesterData, async ({ id }) => {
@@ -81,29 +80,38 @@ async function main() {
           .get(`slc.tm.cp/student/courses/${courseId}`)
           .json<{ resource: { content: any }[] }>()
       ).resource[0].content; // TODO check if #resource always == 1
-      // const resp = await client.get(
-      //   `slc.cm.curriculumposition/positions/${courseId}/course/allCurriculumPositions`
-      // );
-      const dropped_keys = [
-        "translations",
-        "coType",
-        "cpCourseDescriptionDto",
-        "sameCourseDtos",
-        "organisationResponsibleDto",
-        "courseLanguageDtos",
-        "lectureships",
-      ];
+      const courseCurriculumData = (
+        await client
+          .get(
+            `slc.cm.curriculumposition/positions/${courseId}/course/allCurriculumPositions`
+          )
+          .json<{ resource: any[] }>()
+      ).resource.map((res) => res.content);
+
+      // drop some keys we currently do not need to reduce file size
+      const replacer = (k: string, v: any): any =>
+        [
+          "translations",
+          "coType",
+          "cpCourseDescriptionDto",
+          "sameCourseDtos",
+          "organisationResponsibleDto",
+          "courseLanguageDtos",
+          "lectureships",
+          "reference",
+          "validFrom",
+        ].includes(k)
+          ? undefined
+          : v;
+      const semesterId =
+        courseData.cpCourseDetailDto.cpCourseDto.semesterDto.id.toString();
       await fs.writeFile(
-        path.join(
-          storagePath,
-          courseData.cpCourseDetailDto.cpCourseDto.semesterDto.id.toString(),
-          `course${courseId}.json`
-        ),
-        JSON.stringify(
-          courseData,
-          (k, v) => (dropped_keys.includes(k) ? undefined : v),
-          2
-        )
+        path.join(storagePath, semesterId, `course${courseId}.json`),
+        JSON.stringify(courseData, replacer, 2)
+      );
+      await fs.writeFile(
+        path.join(storagePath, semesterId, `course${courseId}-curric.json`),
+        JSON.stringify(courseCurriculumData, replacer, 2)
       );
       return "succ";
     } catch (e) {
@@ -112,7 +120,7 @@ async function main() {
     }
   };
 
-  const storagePath = path.join(os.homedir(), ".cache/campusoffline/");
+  const storagePath = path.join(homedir(), ".cache/campusoffline/");
   await pMap(
     semesterData,
     async ({ id }) =>
@@ -125,8 +133,13 @@ async function main() {
     (course) => fetchAndSave(course.content.cpCourseDto.id, storagePath),
     { concurrency: CONCURRENCY_LIMIT }
   );
+
+  await fs.writeFile(
+    path.join(storagePath, `semesters.json`),
+    JSON.stringify(semesterData)
+  );
+
   console.log("#Succ:", resps.filter((resp) => resp === "succ").length);
-  console.log("#Meh:", resps.filter((resp) => resp === "meh").length);
   console.log("#Err:", resps.filter((resp) => resp === "err").length);
 }
 

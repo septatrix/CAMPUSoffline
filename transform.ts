@@ -1,14 +1,22 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import os from "node:os";
-import { pMapIterable } from "p-map";
+import { homedir } from "node:os";
+import pMap, { pMapIterable } from "p-map";
 import groupBy from "object.groupby";
 import type { Course, PathEntry } from "./course";
+import { glob } from "glob";
 
-async function main() {
+type TreeNode = {
+  name: string;
+  iconName: string;
+  children: Record<number, TreeNode>;
+};
+
+async function transformDir(dir: string) {
   const courseFiles = (
-    await fs.readdir(path.join(os.homedir(), ".cache/campusoffline/"), {
+    await glob("course*-curric.json", {
       withFileTypes: true,
+      cwd: dir,
     })
   ).filter((f) => f.isFile());
   console.log("#CourseFiles:", courseFiles.length);
@@ -17,21 +25,15 @@ async function main() {
 
   const studies = [];
 
-  const dropped_keys = ["translations", "coType", "reference", "validFrom"];
   for await (const studyInfos of await pMapIterable(
     courseFiles,
     async (file) => {
-      const content = await fs.readFile(
-        path.join(file.path, file.name),
-        "utf-8"
-      );
+      const content = await fs.readFile(file.fullpath(), "utf-8");
       process.stdout.write(`\r${++progress}`);
-      const course = (
-        JSON.parse(content, (k, v) =>
-          dropped_keys.includes(k) ? undefined : v
-        ) as Course
-      ).resource;
-      return course.map((c) => c.content.coCurriculumPositionDto);
+      const course = JSON.parse(
+        content
+      ) as Course["resource"][number]["content"][];
+      return course.map((c) => c.coCurriculumPositionDto);
     },
     { concurrency: 10 }
   )) {
@@ -54,12 +56,6 @@ async function main() {
       Object.entries(obj).map(([k, v], i) => [k, fn(v, k, i)])
     );
   }
-
-  type TreeNode = {
-    name: string;
-    iconName: string;
-    children: Record<number, TreeNode>;
-  };
 
   function arrayToTree(data: PathEntry[][]): Record<number, TreeNode> {
     const root: TreeNode = { name: "root", iconName: "", children: {} };
@@ -94,9 +90,17 @@ async function main() {
   console.log("#Studies:", Object.keys(studiesTree).length);
 
   await fs.writeFile(
-    path.join("data", "studiesTree.json"),
+    path.join(dir, "studiesTree.json"),
     JSON.stringify(studiesTree, null, 2)
   );
+}
+
+async function main() {
+  const semesterDirs = await glob("*/", {
+    cwd: path.join(homedir(), ".cache/campusoffline/"),
+    absolute: true,
+  });
+  await pMap(semesterDirs, transformDir);
 }
 
 await main();

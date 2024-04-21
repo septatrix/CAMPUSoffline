@@ -6,7 +6,7 @@
         <summary>{{ type }}</summary>
         <ul class="slim study-class stp_0">
           <li v-for="study in studies">
-            <a :href="`study/${study.id}/`">
+            <a :href="`studies/${study.id}/`">
               {{ study.name }} ({{ study.version }})
             </a>
           </li>
@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const { data } = await useFetch("/api/studies");
+const { data } = await useFetch(`/api/semesters/${route.params.term}`);
 
 // TODO replace with Object.groupBy once node/TS supports it
 function groupBy<K extends PropertyKey, T>(

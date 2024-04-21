@@ -11,5 +11,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const { data } = await useFetch(`/api/studiesTree/${route.params.id}`);
+const { data } = await useFetch(
+  `/api/semesters/${route.params.term}/studies/${route.params.id}`
+);
 </script>
