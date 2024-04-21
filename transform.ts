@@ -3,8 +3,8 @@ import path from "node:path";
 import { homedir } from "node:os";
 import pMap, { pMapIterable } from "p-map";
 import groupBy from "object.groupby";
-import type { Course, PathEntry } from "./course";
 import { glob } from "glob";
+import type { SerializedCourse, Back as PathEntry } from "./serialized-course";
 
 type TreeNode = {
   name: string;
@@ -14,7 +14,7 @@ type TreeNode = {
 
 async function transformDir(dir: string) {
   const courseFiles = (
-    await glob("course*-curric.json", {
+    await glob("course*.json", {
       withFileTypes: true,
       cwd: dir,
     })
@@ -30,17 +30,29 @@ async function transformDir(dir: string) {
     async (file) => {
       const content = await fs.readFile(file.fullpath(), "utf-8");
       process.stdout.write(`\r${++progress}`);
-      const course = JSON.parse(
-        content
-      ) as Course["resource"][number]["content"][];
-      return course.map((c) => c.coCurriculumPositionDto);
+      return JSON.parse(content) as SerializedCourse;
     },
     { concurrency: 10 }
   )) {
-    for (const studyInfo of studyInfos) {
+    for (const {
+      coCurriculumPositionDto: studyInfo,
+    } of studyInfos.curriculumPositions) {
       studies.push({
         studyNameInfo: studyInfo.studyNameInfoDto,
-        curriculumPositionPath: studyInfo.curriculumPositionPathDto.path,
+        curriculumPositionPath: [
+          ...studyInfo.curriculumPositionPathDto.path,
+          {
+            elementId: studyInfos.courseDetail.cpCourseDto.id,
+            designation: "",
+            name: {
+              value: studyInfos.courseDetail.cpCourseDto.courseTitle.value,
+            },
+            description: {
+              value: studyInfos.courseDetail.cpCourseDto.courseTitle.value,
+            },
+            iconName: "stp_empty" as "stp_0", // TODO create icon for this
+          } satisfies (typeof studyInfo.curriculumPositionPathDto.path)[number],
+        ],
       });
     }
   }

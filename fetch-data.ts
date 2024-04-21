@@ -3,6 +3,10 @@ import path from "node:path";
 import { homedir } from "node:os";
 import ky from "ky";
 import pMap from "p-map";
+import type { CoursesResponse } from "./courses-resp";
+import type { SemestersResponse } from "./semesters-resp";
+import type { CourseResponse } from "./course-resp";
+import type { CurriculumPositionsResponse } from "./curriculum-pos-resp";
 
 const MAX_PAGE_SIZE = 100;
 const CONCURRENCY_LIMIT = 100;
@@ -33,16 +37,20 @@ function range(start: number, stop: number, step = 1) {
 async function main() {
   const semesterData = await client
     .get("slc.lib.tm/semesters/student")
-    .json<{ semesters: { id: number }[] }>()
-    .then((data) => data.semesters.slice(0, 3));
+    .json<SemestersResponse>()
+    .then((data) => data.semesters.slice(0, 4));
   console.log("#Semesters:", semesterData.length);
 
   const semesterIdAndCourseCnt = await pMap(semesterData, async ({ id }) => {
     const courseCnt = await client
       .get("slc.tm.cp/student/courses", {
-        searchParams: { $skip: 0, $top: 1, $filter: `termId-eq=${id}` },
+        searchParams: {
+          $skip: 0,
+          $top: 1,
+          $filter: `termId-eq=${id}`,
+        },
       })
-      .json<{ totalCount: number }>()
+      .json<CoursesResponse>()
       .then((data) => data.totalCount);
     return { id, courseCnt };
   });
@@ -66,27 +74,32 @@ async function main() {
       async (searchParams) =>
         await client
           .get("slc.tm.cp/student/courses", { searchParams })
-          .json<{ resource: any[] }>()
+          .json<CoursesResponse>()
           .then((data) => data.resource),
       { concurrency: CONCURRENCY_LIMIT }
     )
   ).flat();
   console.log("#Requests (to fetch course data):", courses.length);
 
-  const fetchAndSave = async (courseId: string, storagePath: string) => {
+  const fetchAndSave = async (courseId: number, storagePath: string) => {
     try {
-      const courseData = (
-        await client
-          .get(`slc.tm.cp/student/courses/${courseId}`)
-          .json<{ resource: { content: any }[] }>()
-      ).resource[0].content; // TODO check if #resource always == 1
-      const courseCurriculumData = (
-        await client
-          .get(
-            `slc.cm.curriculumposition/positions/${courseId}/course/allCurriculumPositions`
-          )
-          .json<{ resource: any[] }>()
-      ).resource.map((res) => res.content);
+      const resp = await client
+        .get(`slc.tm.cp/student/courses/${courseId}`)
+        .json<CourseResponse>();
+      console.assert(
+        resp.resource.length === 1,
+        `Course ${courseId} does not have exactly one resource`
+      );
+      const courseData = {
+        courseDetail: resp.resource[0].content.cpCourseDetailDto,
+        curriculumPositions: (
+          await client
+            .get(
+              `slc.cm.curriculumposition/positions/${courseId}/course/allCurriculumPositions`
+            )
+            .json<CurriculumPositionsResponse>()
+        ).resource.map((res) => res.content),
+      };
 
       // drop some keys we currently do not need to reduce file size
       const replacer = (k: string, v: any): any =>
@@ -104,14 +117,10 @@ async function main() {
           ? undefined
           : v;
       const semesterId =
-        courseData.cpCourseDetailDto.cpCourseDto.semesterDto.id.toString();
+        courseData.courseDetail.cpCourseDto.semesterDto.id.toString();
       await fs.writeFile(
         path.join(storagePath, semesterId, `course${courseId}.json`),
         JSON.stringify(courseData, replacer, 2)
-      );
-      await fs.writeFile(
-        path.join(storagePath, semesterId, `course${courseId}-curric.json`),
-        JSON.stringify(courseCurriculumData, replacer, 2)
       );
       return "succ";
     } catch (e) {
