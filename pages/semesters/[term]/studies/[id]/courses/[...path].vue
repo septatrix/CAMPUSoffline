@@ -1,15 +1,14 @@
 <template>
-  <ul>
-    <li v-for="parentMod in modules">
-      {{ parentMod.name }}
-      <ul>
-        <li v-for="(module, id) in parentMod.children" :class="module.iconName">
-          <!-- TODO get correct ID and add link to RWTHonline -->
-          {{ module.name }} ({{ id }})
-        </li>
-      </ul>
-    </li>
-  </ul>
+  <CurriculumTree
+    :children="modules"
+    :stop-nodes="[]"
+    :create-link="
+      (path) =>
+        `https://online.rwth-aachen.de/RWTHonline/ee/ui/ca2/app/desktop/#/slc.tm.cp/student/courses/${path.at(
+          -1
+        )}`
+    "
+  />
 </template>
 
 <script setup lang="ts">

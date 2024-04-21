@@ -5,7 +5,8 @@
   ({{ data.studyNameInfo.curriculumVersionIdentification }})
 
   <CurriculumTree
-    :tree="{ name: '', iconName: 'stp_5', children: data.currics }"
+    :children="data.currics"
+    :create-link="(path) => `courses/${path.join('/')}/`"
   />
 </template>
 
