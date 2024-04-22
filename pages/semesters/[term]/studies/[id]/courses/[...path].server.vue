@@ -1,14 +1,13 @@
 <template>
-  <CurriculumTree
-    :children="modules"
-    :stop-nodes="[]"
-    :create-link="
-      (path) =>
-        `https://online.rwth-aachen.de/RWTHonline/ee/ui/ca2/app/desktop/#/slc.tm.cp/student/courses/${path.at(
-          -1
-        )}`
-    "
-  />
+  <CurriculumTree :children="modules" :stop-nodes="[]">
+    <template #default="{ node, id }">
+      <a
+        :href="`https://online.rwth-aachen.de/RWTHonline/ee/ui/ca2/app/desktop/#/slc.tm.cp/student/courses/${id}`"
+      >
+        {{ node.name }}
+      </a>
+    </template>
+  </CurriculumTree>
 </template>
 
 <script setup lang="ts">
@@ -22,7 +21,7 @@ const attributePath = computed(() =>
 const modules = computed(() =>
   attributePath.value.reduce(
     (obj, key) => obj[key]["children"],
-    data.value.currics
+    data.value!.currics
   )
 );
 </script>

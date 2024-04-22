@@ -38,7 +38,7 @@ async function main() {
   const semesterData = await client
     .get("slc.lib.tm/semesters/student")
     .json<SemestersResponse>()
-    .then((data) => data.semesters.slice(0, 4));
+    .then((data) => data.semesters);
   console.log("#Semesters:", semesterData.length);
 
   const semesterIdAndCourseCnt = await pMap(semesterData, async ({ id }) => {
@@ -120,7 +120,7 @@ async function main() {
         courseData.courseDetail.cpCourseDto.semesterDto.id.toString();
       await fs.writeFile(
         path.join(storagePath, semesterId, `course${courseId}.json`),
-        JSON.stringify(courseData, replacer, 2)
+        JSON.stringify(courseData, replacer)
       );
       return "succ";
     } catch (e) {

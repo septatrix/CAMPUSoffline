@@ -5,6 +5,7 @@ import pMap, { pMapIterable } from "p-map";
 import groupBy from "object.groupby";
 import { glob } from "glob";
 import type { SerializedCourse, Back as PathEntry } from "./serialized-course";
+import type { StudiesTree } from "./studies-tree";
 
 type TreeNode = {
   name: string;
@@ -98,7 +99,7 @@ async function transformDir(dir: string) {
       studyNameInfo: group[0].studyNameInfo,
       currics: arrayToTree(group.map((s) => s.curriculumPositionPath)),
     })
-  );
+  ) satisfies StudiesTree;
   console.log("#Studies:", Object.keys(studiesTree).length);
 
   await fs.writeFile(

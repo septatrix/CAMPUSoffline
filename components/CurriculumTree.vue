@@ -14,12 +14,15 @@
             :children="child.children"
             :path="[...path, id]"
             :stop-nodes="stopNodes"
-            :create-link="createLink"
-          />
+          >
+            <template #default="{ path, id, node }">
+              <slot :path="path" :id="id" :node="node" />
+            </template>
+          </CurriculumTree>
         </template>
-        <a v-else :href="createLink([...path, id])">
+        <slot v-else :path="path" :id="id" :node="child">
           {{ child.name }}
-        </a>
+        </slot>
       </li>
     </template>
   </ul>
@@ -35,16 +38,18 @@ type TreeNode = {
 const props = withDefaults(
   defineProps<{
     children: TreeNode["children"];
-    createLink?: (path: string[]) => string | undefined;
     path?: string[];
     stopNodes?: string[];
   }>(),
   {
-    createLink: () => () => undefined,
     path: () => [],
     stopNodes: () => ["stp_1", "stp_2", "stp_3", "stp_4"],
   }
 );
+
+const slots = defineSlots<{
+  default(props: { path: string[]; id: string; node: TreeNode }): any;
+}>();
 
 const sortedChildren = computed(() =>
   Object.entries(props.children).sort(([_keyA, valA], [_keyB, valB]) =>

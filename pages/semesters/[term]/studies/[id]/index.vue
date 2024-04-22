@@ -1,13 +1,16 @@
 <template>
   <h2>Summer Semester 2024</h2>
 
-  {{ data.studyNameInfo.name.value }}
-  ({{ data.studyNameInfo.curriculumVersionIdentification }})
+  {{ data!.studyNameInfo.name.value }}
+  ({{ data!.studyNameInfo.curriculumVersionIdentification }})
 
-  <CurriculumTree
-    :children="data.currics"
-    :create-link="(path) => `courses/${path.join('/')}/`"
-  />
+  <CurriculumTree :children="data!.currics">
+    <template #default="{ path, node, id }">
+      <a :href="`courses/${path.join('/')}/${id}/`">
+        {{ node.name }}
+      </a>
+    </template>
+  </CurriculumTree>
 </template>
 
 <script setup lang="ts">

@@ -1,12 +1,14 @@
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
+import { StudiesTree } from "~/studies-tree";
+
+const data = JSON.parse(
+  readFileSync(path.join(homedir(), ".cache/campusoffline/semesters.json"), {
+    encoding: "utf-8",
+  })
+) as StudiesTree;
 
 export default defineEventHandler(async () => {
-  return JSON.parse(
-    await readFile(
-      path.join(homedir(), ".cache/campusoffline/semesters.json"),
-      { encoding: "utf-8" }
-    )
-  );
+  return data;
 });

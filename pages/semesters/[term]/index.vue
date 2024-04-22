@@ -57,7 +57,7 @@ const SORT_ORDER = [
 ];
 
 const studyTree = computed(() => {
-  const studies = (data.value as any[]).map((s) => ({
+  const studies = data.value!.map((s) => ({
     id: s.curriculumVersionId,
     type: s.displayedType.value,
     name: s.name.value,
