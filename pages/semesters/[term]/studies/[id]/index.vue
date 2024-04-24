@@ -6,7 +6,7 @@
 
   <CurriculumTree :children="data!.currics">
     <template #default="{ path, node, id }">
-      <a :href="`courses/${path.join('/')}/${id}/`">
+      <a :href="`courses/${[...path, id].join('/')}/`">
         {{ node.name }}
       </a>
     </template>

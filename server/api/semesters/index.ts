@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
-import { StudiesTree } from "~/studies-tree";
+import type { StudiesTree } from "~/studies-tree";
 
 const data = JSON.parse(
   readFileSync(path.join(homedir(), ".cache/campusoffline/semesters.json"), {
