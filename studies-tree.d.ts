@@ -8,6 +8,8 @@ export type StudyInfo = {
 export type PathEntry = {
   readonly name: string;
   readonly iconName: string;
+  readonly credits?: number | undefined;
+  readonly courseTypeDto?: string;
   readonly children: { [key: string]: PathEntry };
 };
 

@@ -41,7 +41,15 @@ async function main() {
     .then((data) => data.semesters);
   console.log("#Semesters:", semesterData.length);
 
-  const semesterIdAndCourseCnt = await pMap(semesterData, async ({ id }) => {
+  const recentSemesters = semesterData.filter(
+    (s) =>
+      new Date().getFullYear() -
+        new Date(Date.parse(s.endOfAcademicSemester.value)).getFullYear() <=
+      3
+  );
+  console.log("#Recent Semesters:", recentSemesters.length);
+
+  const semesterIdAndCourseCnt = await pMap(recentSemesters, async ({ id }) => {
     const courseCnt = await client
       .get("slc.tm.cp/student/courses", {
         searchParams: {
@@ -131,7 +139,7 @@ async function main() {
 
   const storagePath = path.join(homedir(), ".cache/campusoffline/");
   await pMap(
-    semesterData,
+    recentSemesters,
     async ({ id }) =>
       await fs.mkdir(path.join(storagePath, id.toString()), {
         recursive: true,
@@ -145,7 +153,7 @@ async function main() {
 
   await fs.writeFile(
     path.join(storagePath, `semesters.json`),
-    JSON.stringify(semesterData)
+    JSON.stringify(recentSemesters)
   );
 
   console.log("#Succ:", resps.filter((resp) => resp === "succ").length);

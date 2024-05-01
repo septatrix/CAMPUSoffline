@@ -4,13 +4,16 @@ import { homedir } from "node:os";
 import pMap, { pMapIterable } from "p-map";
 import groupBy from "object.groupby";
 import { glob } from "glob";
-import type { SerializedCourse, Back as PathEntry } from "./serialized-course";
+import type { SerializedCourse } from "./serialized-course";
 import type { StudiesTree } from "./studies-tree";
 
 type TreeNode = {
   name: string;
   iconName: string;
   children: Record<number, TreeNode>;
+
+  credits?: number;
+  courseTypeDto?: string;
 };
 
 async function transformDir(dir: string) {
@@ -52,7 +55,16 @@ async function transformDir(dir: string) {
               value: studyInfos.courseDetail.cpCourseDto.courseTitle.value,
             },
             iconName: "stp_empty" as "stp_0", // TODO create icon for this
-          } satisfies (typeof studyInfo.curriculumPositionPathDto.path)[number],
+            credits:
+              studyInfo.creditsDto?.value ??
+              studyInfos.courseDetail.cpCourseDto.ectsCredits,
+            courseTypeDto:
+              studyInfos.courseDetail.cpCourseDto.courseTypeDto.courseTypeName
+                .value,
+          } satisfies (typeof studyInfo.curriculumPositionPathDto.path)[number] & {
+            credits: number | undefined;
+            courseTypeDto: string;
+          },
         ],
       });
     }
@@ -70,18 +82,24 @@ async function transformDir(dir: string) {
     );
   }
 
+  type PathEntry = (typeof studies)[number]["curriculumPositionPath"][number];
   function arrayToTree(data: PathEntry[][]): Record<number, TreeNode> {
     const root: TreeNode = { name: "root", iconName: "", children: {} };
     for (const path of data) {
       let node = root;
       try {
-        for (const { elementId, name, iconName } of path) {
+        for (const entry of path) {
+          const { elementId, name, iconName } = entry;
           if (!node.children.hasOwnProperty(elementId)) {
             node.children[elementId] = {
               name: name.value,
               iconName,
               children: {},
             };
+            if ("credits" in entry) {
+              node.children[elementId].credits = entry.credits;
+              node.children[elementId].courseTypeDto = entry.courseTypeDto;
+            }
           }
           node = node.children[elementId];
         }
@@ -109,10 +127,13 @@ async function transformDir(dir: string) {
 }
 
 async function main() {
-  const semesterDirs = await glob("*/", {
-    cwd: path.join(homedir(), ".cache/campusoffline/"),
-    absolute: true,
-  });
+  const semesters = await fs.readFile(
+    path.join(homedir(), ".cache/campusoffline/semesters.json"),
+    "utf-8"
+  );
+  const semesterDirs = (JSON.parse(semesters) as { id: number }[]).map((s) =>
+    path.join(homedir(), ".cache/campusoffline/", s.id.toString())
+  );
   await pMap(semesterDirs, transformDir);
 }
 

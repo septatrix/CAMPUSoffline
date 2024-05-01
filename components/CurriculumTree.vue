@@ -1,26 +1,25 @@
 <template>
   <ul class="slim">
     <template v-for="[id, child] in sortedChildren" :key="id">
-      <li :class="child.iconName">
+      <li :class="child.iconName" v-if="child.iconName !== LEAF_NODE">
         <template
           v-if="
-            Object.values(child.children).some(
-              (c) => !stopNodes.includes(c.iconName)
-            )
+            Object.values(child.children).some((c) => c.iconName !== LEAF_NODE)
           "
         >
-          {{ child.name }}
-          <CurriculumTree
-            :children="child.children"
-            :path="[...path, id]"
-            :stop-nodes="stopNodes"
-          >
-            <template #default="{ path, id, node }">
-              <slot :path="path" :id="id" :node="node" />
+          <slot name="branch" :path="path" :id="id" :node="child">
+            {{ child.name }}
+          </slot>
+          <CurriculumTree :children="child.children" :path="[...path, id]">
+            <template #branch="props">
+              <slot name="branch" v-bind="props" />
+            </template>
+            <template #leaf="props">
+              <slot name="leaf" v-bind="props" />
             </template>
           </CurriculumTree>
         </template>
-        <slot v-else :path="path" :id="id" :node="child">
+        <slot v-else name="leaf" :path="path" :id="id" :node="child">
           {{ child.name }}
         </slot>
       </li>
@@ -35,20 +34,19 @@ type TreeNode = {
   children: Record<number, TreeNode>;
 };
 
+const LEAF_NODE = "stp_3";
+
 const props = withDefaults(
   defineProps<{
     children: TreeNode["children"];
     path?: string[];
-    stopNodes?: string[];
   }>(),
-  {
-    path: () => [],
-    stopNodes: () => ["stp_1", "stp_2", "stp_3", "stp_4"],
-  }
+  { path: () => [] }
 );
 
 const slots = defineSlots<{
-  default(props: { path: string[]; id: string; node: TreeNode }): any;
+  branch(props: { path: string[]; id: string; node: TreeNode }): any;
+  leaf(props: { path: string[]; id: string; node: TreeNode }): any;
 }>();
 
 const sortedChildren = computed(() =>

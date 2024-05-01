@@ -13,6 +13,7 @@ export type CpCourseDto = {
     readonly courseNumber:                  CourseNumber;
     readonly semesterDto:                   SemesterDto;
     readonly courseTitle:                   CourseTitle;
+    readonly ectsCredits?:                  number;
     readonly identityCodeDto:               IdentityCodeDto;
     readonly identityCodeId:                number;
     readonly courseTypeDto:                 CourseTypeDto;

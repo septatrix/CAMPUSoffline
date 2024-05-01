@@ -30,3 +30,50 @@ ul.slim {
 .stp_5 {
   list-style-image: url("~/assets/icons/stp5.svg");
 }
+
+.icon_stp_0,
+.icon_stp_1,
+.icon_stp_2,
+.icon_stp_3,
+.icon_stp_4,
+.icon_stp_5 {
+  display: inline-block;
+  width: 1em;
+  aspect-ratio: 1;
+}
+
+.icon_stp_0 {
+  background-image: url("~/assets/icons/stp0.svg");
+}
+.icon_stp_1 {
+  background-image: url("~/assets/icons/stp1.svg");
+}
+.icon_stp_2 {
+  background-image: url("~/assets/icons/stp2.svg");
+}
+.icon_stp_3 {
+  background-image: url("~/assets/icons/stp3.svg");
+}
+.icon_stp_4 {
+  background-image: url("~/assets/icons/stp4.svg");
+}
+.icon_stp_5 {
+  background-image: url("~/assets/icons/stp5.svg");
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+tbody:nth-child(even) {
+  background-color: #f3f7fb;
+}
+tbody:nth-child(odd) {
+  background-color: #e6edf6;
+}
+td,
+th {
+  border: 1px solid #7a8793;
+  padding: 5px;
+  vertical-align: top;
+}

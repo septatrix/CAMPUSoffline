@@ -16,7 +16,7 @@ export type Semester = {
 
 export type OfAcademicSemester = {
     readonly coType: "date";
-    readonly value:  Date;
+    readonly value:  string;
 }
 
 export type SemesterDesignation = {

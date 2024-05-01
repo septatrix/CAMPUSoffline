@@ -1,5 +1,4 @@
 <template>
-  <h2>Summer Semester 2024</h2>
   <ul class="slim nowrap stp_1">
     <li v-for="[type, studies] in studyTree">
       <details open>

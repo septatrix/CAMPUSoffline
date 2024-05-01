@@ -1,11 +1,18 @@
 <template>
-  <h2>Summer Semester 2024</h2>
-
   {{ data!.studyNameInfo.name.value }}
   ({{ data!.studyNameInfo.curriculumVersionIdentification }})
 
   <CurriculumTree :children="data!.currics">
-    <template #default="{ path, node, id }">
+    <template #branch="{ node, path, id }">
+      <template
+        v-if="Object.values(node.children).some((c) => c.iconName === 'stp_3')"
+      >
+        <a :href="`courses/${[...path, id].join('/')}/`">
+          {{ node.name }}
+        </a>
+      </template>
+    </template>
+    <template #leaf="{ node, path, id }">
       <a :href="`courses/${[...path, id].join('/')}/`">
         {{ node.name }}
       </a>
