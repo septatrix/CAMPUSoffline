@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
-import type { StudiesTree } from "~/studies-tree";
+import { Semester } from "~/semesters-resp";
 
 const data = JSON.parse(
   readFileSync(path.join(homedir(), ".cache/campusoffline/semesters.json"), {
     encoding: "utf-8",
   })
-) as StudiesTree;
+) as Semester[];
 
 export default defineEventHandler(async () => {
   return data;

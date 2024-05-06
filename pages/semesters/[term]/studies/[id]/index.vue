@@ -1,6 +1,10 @@
 <template>
-  {{ data!.studyNameInfo.name.value }}
-  ({{ data!.studyNameInfo.curriculumVersionIdentification }})
+  <h1>{{ currSemester?.semesterDesignation.value }}</h1>
+
+  <h2>
+    {{ data!.studyNameInfo.name.value }}
+    ({{ data!.studyNameInfo.curriculumVersionIdentification }})
+  </h2>
 
   <CurriculumTree :children="data!.currics">
     <template #branch="{ node, path, id }">
@@ -24,5 +28,9 @@
 const route = useRoute();
 const { data } = await useFetch(
   `/api/semesters/${route.params.term}/studies/${route.params.id}`
+);
+const { data: semesters } = await useFetch("/api/semesters");
+const currSemester = computed(() =>
+  semesters.value?.find((s) => s.id === parseInt(route.params.term as string))
 );
 </script>

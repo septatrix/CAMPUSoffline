@@ -25,8 +25,10 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const modulePath = getRouterParam(event, "path")!;
-  return modulePath
-    .split("/")
-    .reduce((obj, key) => obj[key]["children"], data[id].currics);
+  // TODO clean this up
+  const [prefix, ...rest] = getRouterParam(event, "path")?.split("/")!;
+  return rest.reduce(
+    (obj, key) => obj["children"][key],
+    data[id].currics[prefix]
+  );
 });

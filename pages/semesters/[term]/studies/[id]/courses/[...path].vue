@@ -1,4 +1,5 @@
 <template>
+  <h1>{{ data?.name }}</h1>
   <table>
     <thead>
       <tr>
@@ -9,7 +10,7 @@
         <th>ID</th>
       </tr>
     </thead>
-    <template v-for="(value, key) in data!">
+    <template v-for="(value, key) in data?.children">
       <tbody>
         <template v-for="(value2, key2, idx) in value.children">
           <tr v-for="(node, id, idx2) in value2.children">

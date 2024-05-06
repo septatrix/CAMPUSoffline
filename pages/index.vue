@@ -1,5 +1,5 @@
 <template>
-  <h1>RWTHoffline</h1>
+  <h1>CAMPUSoffline</h1>
   <p>Course overview taken from RWTHonline, made usable</p>
 
   <ul class="stp_1">

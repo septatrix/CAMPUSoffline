@@ -1,4 +1,6 @@
 <template>
+  <h1>{{ currSemester?.semesterDesignation.value }}</h1>
+
   <ul class="slim nowrap stp_1">
     <li v-for="[type, studies] in studyTree">
       <details open>
@@ -18,6 +20,11 @@
 <script setup lang="ts">
 const route = useRoute();
 const { data } = await useFetch(`/api/semesters/${route.params.term}`);
+
+const { data: semesters } = await useFetch("/api/semesters");
+const currSemester = computed(() =>
+  semesters.value?.find((s) => s.id === parseInt(route.params.term as string))
+);
 
 // TODO replace with Object.groupBy once node/TS supports it
 function groupBy<K extends PropertyKey, T>(
