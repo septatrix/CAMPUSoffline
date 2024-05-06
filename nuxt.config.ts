@@ -13,4 +13,7 @@ export default defineNuxtConfig({
       enabled: true,
     },
   },
+  runtimeConfig: {
+    public: { ciRunUrl: "" },
+  },
 });

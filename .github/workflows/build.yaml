@@ -45,8 +45,12 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Fetch data
-        run: pnpx tsx fetch-data.ts && pnpx tsx transform.ts
+        run: |
+          pnpx tsx fetch-data.ts
+          pnpx tsx transform.ts
       - name: Build page
+        env:
+          NUXT_PUBLIC_CI_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: pnpm run generate
 
       - name: Upload artifact
