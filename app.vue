@@ -2,6 +2,13 @@
   <div id="app">
     <NuxtPage />
   </div>
+
+  <footer>
+    <p>
+      Contribute on
+      <a href="https://www.github.com/septatrix/CAMPUSoffline">Github</a>.
+    </p>
+  </footer>
 </template>
 
 <script setup lang="ts">
