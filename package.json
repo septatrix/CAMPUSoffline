@@ -11,13 +11,13 @@
   },
   "dependencies": {
     "nuxt": "^3.12.4",
-    "vue": "^3.4.37",
+    "vue": "^3.4.38",
     "vue-router": "^4.4.3"
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
     "glob": "^11.0.0",
-    "ky": "^1.5.0",
+    "ky": "^1.7.0",
     "object.groupby": "^1.0.3",
     "p-limit": "^6.1.0",
     "p-map": "^7.0.2",
