@@ -1,7 +1,7 @@
 export type CoursesResponse = {
     readonly totalCount: number;
     readonly link:       Link[];
-    readonly resource:   Resource[];
+    readonly courses:    CpCourseDto[];
 }
 
 export type Link = {
@@ -14,16 +14,6 @@ export type Link = {
 export type LinkName = "CoCourseGroupRegistrationDto" | "CpCourseCategoryGroupDto" | "CpCourseTypeLibDto" | "LanguageLibDto" | "AptWeekDayDto" | "IdentityLibDto" | "CpCourseDto" | "CpCourseRegistrationDto";
 
 export type Rel = "related" | "detail";
-
-export type Resource = {
-    readonly link:    Link[];
-    readonly content: Content;
-}
-
-export type Content = {
-    readonly type:        "model-slc.tm.cp.student.CpCourseDto";
-    readonly cpCourseDto: CpCourseDto;
-}
 
 export type CpCourseDto = {
     readonly id:                            number;

@@ -83,7 +83,7 @@ async function main() {
         await client
           .get("slc.tm.cp/student/courses", { searchParams })
           .json<CoursesResponse>()
-          .then((data) => data.resource),
+          .then((data) => data.courses),
       { concurrency: CONCURRENCY_LIMIT }
     )
   ).flat();
@@ -147,7 +147,7 @@ async function main() {
   );
   const resps = await pMap(
     courses,
-    (course) => fetchAndSave(course.content.cpCourseDto.id, storagePath),
+    (course) => fetchAndSave(course.id, storagePath),
     { concurrency: CONCURRENCY_LIMIT }
   );
 
