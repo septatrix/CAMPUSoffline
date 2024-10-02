@@ -25,18 +25,16 @@
             <td
               v-if="idx === 0 && idx2 === 0"
               :rowspan="
-                Object.keys(value.children).length === 1 &&
-                Object.keys(value2.children).length == 1
-                  ? 1
-                  : 0
+                Object.values(value.children)
+                  .map((v) => Object.values(v.children).length)
+                  .reduce((a, b) => a + b)
               "
             >
               {{ value.name }}
             </td>
             <td>
-              {{ node.courseTypeDto }} (
-              <i :class="`icon_${value2.iconName}`" />
-              )
+              (<i :class="`icon_${value2.iconName}`" />)
+              {{ node.courseTypeDto }}
             </td>
             <td>{{ node.name }}</td>
             <td>{{ node.credits ?? "" }}</td>
