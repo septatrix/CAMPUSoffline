@@ -25,8 +25,8 @@ importers:
         specifier: ^11.0.1
         version: 11.0.1
       ky:
-        specifier: ^1.7.5
-        version: 1.7.5
+        specifier: ^1.8.0
+        version: 1.8.0
       object.groupby:
         specifier: ^1.0.3
         version: 1.0.3
@@ -1913,8 +1913,8 @@ packages:
   knitwork@1.2.0:
     resolution: {integrity: sha512-xYSH7AvuQ6nXkq42x0v5S8/Iry+cfulBz/DJQzhIyESdLD7425jXsPy4vn5cCXU+HhRN2kVw51Vd1K6/By4BQg==}
 
-  ky@1.7.5:
-    resolution: {integrity: sha512-HzhziW6sc5m0pwi5M196+7cEBtbt0lCYi67wNsiwMUmz833wloE0gbzJPWKs1gliFKQb34huItDQX97LyOdPdA==}
+  ky@1.8.0:
+    resolution: {integrity: sha512-DoKGmG27nT8t/1F9gV8vNzggJ3mLAyD49J8tTMWHeZvS8qLc7GlyTieicYtFzvDznMe/q2u38peOjkWc5/pjvw==}
     engines: {node: '>=18'}
 
   launch-editor@2.10.0:
@@ -5261,7 +5261,7 @@ snapshots:
 
   knitwork@1.2.0: {}
 
-  ky@1.7.5: {}
+  ky@1.8.0: {}
 
   launch-editor@2.10.0:
     dependencies:
