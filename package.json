@@ -10,17 +10,17 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "nuxt": "^4.2.0",
-    "vue": "^3.5.22",
+    "nuxt": "^4.2.1",
+    "vue": "^3.5.24",
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
     "glob": "^11.0.3",
-    "ky": "^1.13.0",
+    "ky": "^1.14.0",
     "object.groupby": "^1.0.3",
     "p-limit": "^7.2.0",
-    "p-map": "^7.0.3",
+    "p-map": "^7.0.4",
     "p-reduce": "^3.0.0"
   }
 }
