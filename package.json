@@ -17,7 +17,7 @@
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
     "glob": "^13.0.0",
-    "ky": "^1.14.1",
+    "ky": "^1.14.2",
     "object.groupby": "^1.0.3",
     "p-limit": "^7.2.0",
     "p-map": "^7.0.4",
