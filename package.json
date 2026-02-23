@@ -12,11 +12,11 @@
   "dependencies": {
     "nuxt": "^4.3.1",
     "vue": "^3.5.28",
-    "vue-router": "^5.0.2"
+    "vue-router": "^5.0.3"
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
-    "glob": "^13.0.3",
+    "glob": "^13.0.6",
     "ky": "^1.14.3",
     "object.groupby": "^1.0.3",
     "p-limit": "^7.3.0",
