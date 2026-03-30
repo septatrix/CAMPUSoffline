@@ -10,9 +10,9 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "nuxt": "^4.3.1",
-    "vue": "^3.5.30",
-    "vue-router": "^5.0.3"
+    "nuxt": "^4.4.2",
+    "vue": "^3.5.31",
+    "vue-router": "^5.0.4"
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
