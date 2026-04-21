@@ -131,11 +131,8 @@ async function main() {
     path.join(homedir(), ".cache/campusoffline/semesters.json"),
     "utf-8"
   );
-  const semesters = JSON.parse(semestersContent) as
-    | { id: number }[]
-    | { semesters: { id: number }[] };
-  const semesterList = Array.isArray(semesters) ? semesters : semesters.semesters;
-  const semesterDirs = semesterList.map((s) =>
+  const semesters = JSON.parse(semestersContent) as { semesters: { id: number }[] };
+  const semesterDirs = semesters.semesters.map((s) =>
     path.join(homedir(), ".cache/campusoffline/", s.id.toString())
   );
   await pMap(semesterDirs, transformDir);

@@ -29,21 +29,17 @@ useSeoMeta({
 });
 
 const conf = useRuntimeConfig();
-const { data: fetchedAt } = await useFetch<string | null>("/api/fetched-at");
+const { data: fetchedAt } = await useFetch<string>("/api/fetched-at");
 const fetchedAtText = computed(() => {
   if (!fetchedAt.value) {
     return null;
   }
   const date = new Date(fetchedAt.value);
-  if (Number.isNaN(date.getTime())) {
-    return "unavailable";
-  }
-  return (
-    new Intl.DateTimeFormat("en-GB", {
-      dateStyle: "medium",
-      timeStyle: "medium",
-      timeZone: "UTC",
-    }).format(date) + " UTC"
-  );
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+  return `${date.getUTCFullYear()}-${pad2(date.getUTCMonth() + 1)}-${pad2(
+    date.getUTCDate()
+  )} ${pad2(date.getUTCHours())}:${pad2(date.getUTCMinutes())}:${pad2(
+    date.getUTCSeconds()
+  )} UTC`;
 });
 </script>

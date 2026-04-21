@@ -3,23 +3,17 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { Semester } from "~/semesters-resp";
 
-type SemestersCache = {
-  fetchedAt: string | null;
+export type SemestersCache = {
+  fetchedAt: string;
   semesters: Semester[];
 };
 
-export function readSemestersCache(): SemestersCache {
-  const rawData = JSON.parse(
-    readFileSync(path.join(homedir(), ".cache/campusoffline/semesters.json"), {
-      encoding: "utf-8",
-    })
-  ) as Semester[] | { fetchedAt?: string; semesters: Semester[] };
+const semestersCache = JSON.parse(
+  readFileSync(path.join(homedir(), ".cache/campusoffline/semesters.json"), {
+    encoding: "utf-8",
+  })
+) as SemestersCache;
 
-  if (Array.isArray(rawData)) {
-    return { fetchedAt: null, semesters: rawData };
-  }
-  return {
-    fetchedAt: rawData.fetchedAt ?? null,
-    semesters: rawData.semesters,
-  };
+export function getSemestersCache(): SemestersCache {
+  return semestersCache;
 }

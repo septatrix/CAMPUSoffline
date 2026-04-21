@@ -1,7 +1,5 @@
-import { readSemestersCache } from "~/server/utils/semesters-cache";
-
-const semesterData = readSemestersCache();
+import { getSemestersCache } from "~/server/utils/semesters-cache";
 
 export default defineEventHandler(async () => {
-  return semesterData.fetchedAt ?? null;
+  return getSemestersCache().fetchedAt;
 });
