@@ -9,9 +9,9 @@
       <a :href="conf.public.ciRunUrl">the run</a>
       which generated this deployment.
     </p>
-    <p v-if="fetchedAt">
+    <p v-if="fetchedAt && fetchedAtText">
       Data was last fetched at
-      <time :datetime="fetchedAt">{{ fetchedAt }}</time>.
+      <time :datetime="fetchedAt">{{ fetchedAtText }}</time>.
     </p>
     <p>
       Contribute on
@@ -30,4 +30,20 @@ useSeoMeta({
 
 const conf = useRuntimeConfig();
 const { data: fetchedAt } = await useFetch<string | null>("/api/fetched-at");
+const fetchedAtText = computed(() => {
+  if (!fetchedAt.value) {
+    return null;
+  }
+  const date = new Date(fetchedAt.value);
+  if (Number.isNaN(date.getTime())) {
+    return fetchedAt.value;
+  }
+  return (
+    new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "medium",
+      timeStyle: "medium",
+      timeZone: "UTC",
+    }).format(date) + " UTC"
+  );
+});
 </script>
