@@ -11,7 +11,7 @@ import type { CurriculumPositionsResponse } from "./curriculum-pos-resp";
 const MAX_PAGE_SIZE = 100;
 const CONCURRENCY_LIMIT = 100;
 const client = ky.create({
-  prefixUrl: "https://online.rwth-aachen.de/RWTHonline/ee/rest/",
+  prefix: "https://online.rwth-aachen.de/RWTHonline/ee/rest/",
 });
 
 function range(start: number, stop: number, step = 1) {
