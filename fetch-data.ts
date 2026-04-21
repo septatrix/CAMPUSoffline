@@ -153,7 +153,10 @@ async function main() {
 
   await fs.writeFile(
     path.join(storagePath, `semesters.json`),
-    JSON.stringify(recentSemesters)
+    JSON.stringify({
+      fetchedAt: new Date().toISOString(),
+      semesters: recentSemesters,
+    })
   );
 
   console.log("#Succ:", resps.filter((resp) => resp === "succ").length);

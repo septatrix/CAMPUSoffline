@@ -127,11 +127,15 @@ async function transformDir(dir: string) {
 }
 
 async function main() {
-  const semesters = await fs.readFile(
+  const semestersContent = await fs.readFile(
     path.join(homedir(), ".cache/campusoffline/semesters.json"),
     "utf-8"
   );
-  const semesterDirs = (JSON.parse(semesters) as { id: number }[]).map((s) =>
+  const semesters = JSON.parse(semestersContent) as
+    | { id: number }[]
+    | { semesters: { id: number }[] };
+  const semesterList = Array.isArray(semesters) ? semesters : semesters.semesters;
+  const semesterDirs = semesterList.map((s) =>
     path.join(homedir(), ".cache/campusoffline/", s.id.toString())
   );
   await pMap(semesterDirs, transformDir);

@@ -9,6 +9,10 @@
       <a :href="conf.public.ciRunUrl">the run</a>
       which generated this deployment.
     </p>
+    <p v-if="fetchedAt">
+      Data was last fetched at
+      <time :datetime="fetchedAt">{{ fetchedAt }}</time>.
+    </p>
     <p>
       Contribute on
       <a href="https://www.github.com/septatrix/CAMPUSoffline">Github</a>.
@@ -25,4 +29,5 @@ useSeoMeta({
 });
 
 const conf = useRuntimeConfig();
+const { data: fetchedAt } = await useFetch<string | null>("/api/fetched-at");
 </script>
