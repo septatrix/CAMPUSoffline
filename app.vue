@@ -36,7 +36,7 @@ const fetchedAtText = computed(() => {
   }
   const date = new Date(fetchedAt.value);
   if (Number.isNaN(date.getTime())) {
-    return fetchedAt.value;
+    return "an unknown time";
   }
   return (
     new Intl.DateTimeFormat("en-GB", {

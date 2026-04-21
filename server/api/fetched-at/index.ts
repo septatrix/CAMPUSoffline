@@ -1,12 +1,6 @@
-import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import path from "node:path";
+import { readSemestersCache } from "~/server/utils/semesters-cache";
 
-const semesterData = JSON.parse(
-  readFileSync(path.join(homedir(), ".cache/campusoffline/semesters.json"), {
-    encoding: "utf-8",
-  })
-) as { fetchedAt?: string };
+const semesterData = readSemestersCache();
 
 export default defineEventHandler(async () => {
   return semesterData.fetchedAt ?? null;
