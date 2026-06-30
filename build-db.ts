@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { homedir } from "node:os";
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import { glob } from "glob";
 import type { SerializedCourse } from "./serialized-course";
 import type { Semester } from "./semesters-resp";
@@ -86,8 +86,8 @@ async function main() {
   await fs.rm(OUT_FILE, { force: true });
   await fs.mkdir(OUT_DIR, { recursive: true });
 
-  const db = new Database(OUT_FILE);
-  db.pragma("journal_mode = WAL");
+  const db = new DatabaseSync(OUT_FILE);
+  db.exec("PRAGMA journal_mode = WAL");
   db.exec(SCHEMA);
 
   const insertSemester = db.prepare(
@@ -217,8 +217,8 @@ async function main() {
   insertMeta.run("fetched_at", cache.fetchedAt);
   insertMeta.run("generated_at", new Date().toISOString());
 
-  db.pragma("wal_checkpoint(TRUNCATE)");
-  db.pragma("journal_mode = DELETE");
+  db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
+  db.exec("PRAGMA journal_mode = DELETE");
   db.exec("VACUUM");
   db.exec("PRAGMA optimize");
   db.close();
