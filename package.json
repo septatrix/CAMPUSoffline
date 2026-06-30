@@ -9,13 +9,18 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["better-sqlite3", "esbuild", "@parcel/watcher"]
+  },
   "dependencies": {
+    "@sqlite.org/sqlite-wasm": "3.53.0-build1",
     "nuxt": "^4.4.8",
     "vue": "^3.5.38",
     "vue-router": "^5.1.0"
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
+    "better-sqlite3": "^12.11.1",
     "glob": "^13.0.6",
     "ky": "^2.0.2",
     "object.groupby": "^1.0.3",

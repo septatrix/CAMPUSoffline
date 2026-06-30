@@ -9,6 +9,12 @@
       </a>
     </li>
   </ul>
+
+  <p>
+    Need something more flexible? Try the
+    <NuxtLink to="/query">advanced SQL query page</NuxtLink> to run arbitrary
+    queries against the full dataset, right in your browser.
+  </p>
 </template>
 
 <script setup lang="ts">
