@@ -9,6 +9,14 @@
     <NuxtLink to="/">semester overview</NuxtLink> instead.
   </p>
 
+  <aside class="wip">
+    <strong>⚠️ Work in progress.</strong> This query interface is highly
+    experimental. The database schema, the available tables and columns, and the
+    way the data is modelled are all subject to change and may break without
+    notice — do not rely on it yet. Feedback and contributions are very welcome
+    <a href="https://github.com/septatrix/CAMPUSoffline/issues/4">on GitHub</a>.
+  </aside>
+
   <ClientOnly>
     <p v-if="status === 'loading'">
       Loading database… {{ loadedMb }} MB{{ totalMb ? ` / ${totalMb} MB` : "" }}
@@ -261,6 +269,13 @@ useSeoMeta({
 </script>
 
 <style scoped>
+.wip {
+  border: 1px solid #e0c200;
+  background-color: #fff8d6;
+  border-radius: 4px;
+  padding: 0.6em 0.9em;
+  margin: 1em 0;
+}
 textarea {
   width: 100%;
   font-family: monospace;
