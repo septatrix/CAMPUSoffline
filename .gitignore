@@ -1,6 +1,9 @@
 data/
 .venv
 
+# Generated at build time by build-db.ts
+public/db/
+
 # Nuxt dev/build outputs
 .output
 .data

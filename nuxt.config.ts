@@ -16,4 +16,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: { ciRunUrl: "" },
   },
+  vite: {
+    // The official SQLite WASM build resolves its .wasm via `import.meta.url`;
+    // excluding it from dep pre-bundling keeps that resolution intact.
+    optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
+  },
 });
