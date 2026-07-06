@@ -12,7 +12,7 @@
   "dependencies": {
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
     "nuxt": "^4.4.8",
-    "vue": "^3.5.38",
+    "vue": "^3.5.39",
     "vue-router": "^5.1.0"
   },
   "devDependencies": {
@@ -21,7 +21,7 @@
     "ky": "^2.0.2",
     "object.groupby": "^1.0.3",
     "p-limit": "^7.3.0",
-    "p-map": "^7.0.4",
+    "p-map": "^7.0.5",
     "p-reduce": "^3.0.0"
   }
 }
