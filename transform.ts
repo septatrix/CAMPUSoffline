@@ -14,6 +14,10 @@ type TreeNode = {
 
   credits?: number;
   courseTypeDto?: string;
+  courseNumber?: string;
+  examinationMethod?: string;
+  subjectType?: string;
+  semesterRecommendation?: string;
 };
 
 async function transformDir(dir: string) {
@@ -61,9 +65,20 @@ async function transformDir(dir: string) {
             courseTypeDto:
               studyInfos.courseDetail.cpCourseDto.courseTypeDto.courseTypeName
                 .value,
+            courseNumber:
+              studyInfos.courseDetail.cpCourseDto.courseNumber?.courseNumber,
+            examinationMethod:
+              studyInfos.courseDetail.cpCourseDto.examinationMethodName?.value,
+            subjectType: studyInfo.subjectTypeDto?.value?.value,
+            semesterRecommendation:
+              studyInfo.semesterRecommendationDto?.keyWinterstarter,
           } satisfies (typeof studyInfo.curriculumPositionPathDto.path)[number] & {
             credits: number | undefined;
             courseTypeDto: string;
+            courseNumber: string | undefined;
+            examinationMethod: string | undefined;
+            subjectType: string | undefined;
+            semesterRecommendation: string | undefined;
           },
         ],
       });
@@ -96,9 +111,14 @@ async function transformDir(dir: string) {
               iconName,
               children: {},
             };
-            if ("credits" in entry) {
-              node.children[elementId].credits = entry.credits;
-              node.children[elementId].courseTypeDto = entry.courseTypeDto;
+            if ("courseTypeDto" in entry) {
+              const leaf = node.children[elementId];
+              leaf.credits = entry.credits;
+              leaf.courseTypeDto = entry.courseTypeDto;
+              leaf.courseNumber = entry.courseNumber;
+              leaf.examinationMethod = entry.examinationMethod;
+              leaf.subjectType = entry.subjectType;
+              leaf.semesterRecommendation = entry.semesterRecommendation;
             }
           }
           node = node.children[elementId];

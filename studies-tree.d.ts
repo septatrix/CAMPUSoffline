@@ -10,6 +10,10 @@ export type PathEntry = {
   readonly iconName: string;
   readonly credits?: number | undefined;
   readonly courseTypeDto?: string;
+  readonly courseNumber?: string;
+  readonly examinationMethod?: string;
+  readonly subjectType?: string;
+  readonly semesterRecommendation?: string;
   readonly children: { [key: string]: PathEntry };
 };
 
