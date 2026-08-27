@@ -7,6 +7,10 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "data": "pnpm run data:fetch && pnpm run data:transform && pnpm run data:build-db",
+    "data:fetch": "node fetch-data.ts",
+    "data:transform": "node transform.ts",
+    "data:build-db": "node build-db.ts",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

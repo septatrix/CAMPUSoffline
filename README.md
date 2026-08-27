@@ -68,8 +68,9 @@ isolation headers (COOP/COEP), which GitHub Pages cannot set.
 
 ### Requirements
 
-- **Node.js ≥ 22** — `build-db.ts` uses the built-in [`node:sqlite`][node-sqlite]
-  module, which is unavailable on older versions.
+- **Node.js ≥ 22.18** — the data scripts are TypeScript and are run by Node itself
+  via [type stripping][type-stripping], which is enabled by default from that version
+  on. `build-db.ts` additionally uses the built-in [`node:sqlite`][node-sqlite] module.
 - **[pnpm][pnpm]**
 
 ### Setup
@@ -84,9 +85,15 @@ The browse pages and the query database are built from a local cache. Populate i
 then derive the artefacts (this talks to RWTHonline, so it needs network access):
 
 ```bash
-pnpx tsx fetch-data.ts     # scrape RWTHonline into ~/.cache/campusoffline/
-pnpx tsx transform.ts      # build the per-semester studiesTree.json
-pnpx tsx build-db.ts       # build public/db/courses.sqlite3
+pnpm run data              # all three stages below, in order
+```
+
+The stages can also be run individually:
+
+```bash
+pnpm run data:fetch        # scrape RWTHonline into ~/.cache/campusoffline/
+pnpm run data:transform    # build the per-semester studiesTree.json and courses.json
+pnpm run data:build-db     # build public/db/courses.sqlite3
 ```
 
 ### Run
@@ -117,4 +124,5 @@ Contributions and feedback are welcome — please open an issue or pull request.
 [pnpm]: https://pnpm.io/
 [sqlite-wasm]: https://sqlite.org/wasm
 [node-sqlite]: https://nodejs.org/api/sqlite.html
+[type-stripping]: https://nodejs.org/api/typescript.html#type-stripping
 [deserialize]: https://www.sqlite.org/c3ref/deserialize.html

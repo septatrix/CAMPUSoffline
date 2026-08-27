@@ -6,7 +6,7 @@ import groupBy from "object.groupby";
 import { glob } from "glob";
 import type { SerializedCourse } from "./serialized-course";
 import type { CourseInfo, StudiesTree } from "./studies-tree";
-import { summarizeAppointments } from "./appointments";
+import { summarizeAppointments } from "./appointments.ts";
 
 type TreeNode = {
   name: string;

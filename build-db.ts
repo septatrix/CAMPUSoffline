@@ -5,7 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 import { glob } from "glob";
 import type { SerializedCourse } from "./serialized-course";
 import type { Semester } from "./semesters-resp";
-import { summarizeAppointments } from "./appointments";
+import { summarizeAppointments } from "./appointments.ts";
 
 const CACHE_DIR = path.join(homedir(), ".cache/campusoffline");
 const OUT_DIR = path.resolve("public/db");
