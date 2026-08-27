@@ -127,6 +127,10 @@ const examples = [
     sql: "SELECT s.designation AS semester, cu.displayed_type AS study_type,\n       cu.name AS study, n.name AS position, c.title, p.credits\nFROM course_placements p\nJOIN courses c  ON c.id = p.course_id\nJOIN curricula cu ON cu.curriculum_version_id = p.curriculum_version_id\nJOIN curriculum_nodes n\n     ON n.curriculum_version_id = p.curriculum_version_id\n    AND n.element_id = p.leaf_element_id\nJOIN semesters s ON s.id = c.semester_id\nORDER BY c.title\nLIMIT 100;",
   },
   {
+    label: "Monday mornings",
+    sql: "SELECT c.title, c.course_type_name, a.weekday, a.starts_at, a.ends_at,\n       a.room, a.occurrences\nFROM course_appointments a\nJOIN courses c ON c.id = a.course_id\nWHERE a.weekday_sort = 1 AND a.starts_at < '12:00'\nORDER BY a.starts_at, c.title\nLIMIT 100;",
+  },
+  {
     label: "Title search",
     sql: "SELECT id, semester_id, title, ects_credits\nFROM courses\nWHERE title LIKE '%Algebra%'\nORDER BY title;",
   },

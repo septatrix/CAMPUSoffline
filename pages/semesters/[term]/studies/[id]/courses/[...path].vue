@@ -1,62 +1,60 @@
 <template>
   <h1>{{ data?.name }}</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Course Type</th>
-        <th>Name</th>
-        <th>Credits</th>
-        <th>ID</th>
-      </tr>
-    </thead>
-    <template v-for="(value, key) in data?.children">
-      <tbody>
-        <template v-for="(value2, key2, idx) in value.children">
-          <tr v-for="(node, id, idx2) in value2.children">
-            <!--
-              The rowspan shenanigans are to fix one of:
-              - https://bugzilla.mozilla.org/show_bug.cgi?id=1000435
-              - https://bugzilla.mozilla.org/show_bug.cgi?id=217769
-              - https://bugzilla.mozilla.org/show_bug.cgi?id=244135
-              - https://bugzilla.mozilla.org/show_bug.cgi?id=332740
-              - https://bugzilla.mozilla.org/show_bug.cgi?id=332977
-            -->
-            <td
-              v-if="idx === 0 && idx2 === 0"
-              :rowspan="
-                Object.values(value.children)
-                  .map((v) => Object.values(v.children).length)
-                  .reduce((a, b) => a + b)
-              "
-            >
-              {{ value.name }}
-            </td>
-            <td>
-              (<i :class="`icon_${value2.iconName}`" />)
-              {{ node.courseTypeDto }}
-            </td>
-            <td>{{ node.name }}</td>
-            <td>{{ node.credits ?? "" }}</td>
-            <td>
-              <a
-                :href="`https://online.rwth-aachen.de/RWTHonline/ee/ui/ca2/app/desktop/#/slc.tm.cp/student/courses/${id}`"
-              >
-                {{ id }}
-              </a>
-            </td>
-          </tr>
-        </template>
-      </tbody>
-    </template>
-  </table>
+  <CourseTable :rows="rows" />
 </template>
 
 <script setup lang="ts">
+import type { CourseRow } from "~/course-row";
+import type { CourseNode, PathEntry } from "~/studies-tree";
+
+const LEAF_NODE = "stp_empty";
+const MODULE_NODE = "stp_3";
+
 const route = useRoute();
 const { data } = await useFetch(
   `/api/semesters/${route.params.term}/studies/${route.params.id}/courses/${(
     route.params.path as string[]
   ).join("/")}`
+);
+
+/**
+ * The depth below a curriculum node varies,
+ * so instead of nesting a fixed number of loops the tree is walked down to the courses.
+ * The module of a course is the closest module node above it,
+ * the direct parent supplies the icon telling apart lecture, exercise and the like.
+ */
+function flatten(
+  node: Pick<PathEntry, "children">,
+  ancestors: PathEntry[] = []
+): CourseRow[] {
+  return Object.entries(node.children ?? {}).flatMap(([id, child]) => {
+    if (child.iconName !== LEAF_NODE) {
+      return flatten(child, [...ancestors, child]);
+    }
+    const course = child as CourseNode;
+    return [
+      {
+        key: [...ancestors.map((a) => a.name), id].join("/"),
+        module:
+          ancestors.findLast((a) => a.iconName === MODULE_NODE)?.name ??
+          ancestors[0]?.name ??
+          "",
+        iconName: ancestors.at(-1)?.iconName ?? "",
+        courseType: course.courseType ?? "",
+        title: course.name,
+        credits: course.credits ?? null,
+        sws: course.sws ?? null,
+        semesterRecommendation: course.semesterRecommendation ?? null,
+        subjectType: course.subjectType ?? null,
+        examMethod: course.examMethod ?? null,
+        appointments: course.appointments ?? [],
+        courseId: id,
+      } satisfies CourseRow,
+    ];
+  });
+}
+
+const rows = computed(() =>
+  data.value ? flatten(data.value as PathEntry) : []
 );
 </script>

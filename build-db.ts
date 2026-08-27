@@ -5,6 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 import { glob } from "glob";
 import type { SerializedCourse } from "./serialized-course";
 import type { Semester } from "./semesters-resp";
+import { summarizeAppointments } from "./appointments";
 
 const CACHE_DIR = path.join(homedir(), ".cache/campusoffline");
 const OUT_DIR = path.resolve("public/db");
@@ -33,6 +34,7 @@ CREATE TABLE courses (
   ects_credits           REAL,
   course_type_key        TEXT,
   course_type_name       TEXT,
+  sws                    TEXT,
   exam_method            TEXT,
   registration_available INTEGER,
   elearning_active       INTEGER
@@ -67,6 +69,27 @@ CREATE TABLE course_placements (
   semester_recommendation TEXT
 );
 
+CREATE TABLE course_groups (
+  id             INTEGER PRIMARY KEY,
+  course_id      INTEGER REFERENCES courses(id),
+  name           TEXT,
+  standard_group INTEGER
+);
+
+-- Recurring slots of a course:
+-- the individual dates of a term collapsed into one row per weekday/time/room,
+-- cancelled dates excluded.
+CREATE TABLE course_appointments (
+  course_id    INTEGER REFERENCES courses(id),
+  group_name   TEXT,
+  weekday      TEXT,
+  weekday_sort INTEGER,
+  starts_at    TEXT,
+  ends_at      TEXT,
+  room         TEXT,
+  occurrences  INTEGER
+);
+
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 `;
 
@@ -76,6 +99,9 @@ CREATE INDEX idx_courses_title       ON courses(title);
 CREATE INDEX idx_placements_course   ON course_placements(course_id);
 CREATE INDEX idx_placements_curric   ON course_placements(curriculum_version_id, leaf_element_id);
 CREATE INDEX idx_nodes_parent        ON curriculum_nodes(curriculum_version_id, parent_element_id);
+CREATE INDEX idx_groups_course       ON course_groups(course_id);
+CREATE INDEX idx_appointments_course ON course_appointments(course_id);
+CREATE INDEX idx_appointments_slot   ON course_appointments(weekday_sort, starts_at);
 `;
 
 async function main() {
@@ -98,9 +124,10 @@ async function main() {
   const insertCourse = db.prepare(
     `INSERT OR REPLACE INTO courses
        (id, semester_id, course_number, title, ects_credits, course_type_key,
-        course_type_name, exam_method, registration_available, elearning_active)
+        course_type_name, sws, exam_method, registration_available,
+        elearning_active)
      VALUES (@id, @semester_id, @course_number, @title, @ects_credits,
-        @course_type_key, @course_type_name, @exam_method,
+        @course_type_key, @course_type_name, @sws, @exam_method,
         @registration_available, @elearning_active)`
   );
   const insertCurriculum = db.prepare(
@@ -115,6 +142,18 @@ async function main() {
        (curriculum_version_id, element_id, name, icon_name, parent_element_id)
      VALUES (@curriculum_version_id, @element_id, @name, @icon_name,
         @parent_element_id)`
+  );
+  const insertGroup = db.prepare(
+    `INSERT OR IGNORE INTO course_groups
+       (id, course_id, name, standard_group)
+     VALUES (@id, @course_id, @name, @standard_group)`
+  );
+  const insertAppointment = db.prepare(
+    `INSERT INTO course_appointments
+       (course_id, group_name, weekday, weekday_sort, starts_at, ends_at, room,
+        occurrences)
+     VALUES (@course_id, @group_name, @weekday, @weekday_sort, @starts_at,
+        @ends_at, @room, @occurrences)`
   );
   const insertPlacement = db.prepare(
     `INSERT INTO course_placements
@@ -137,13 +176,14 @@ async function main() {
 
   let courseCount = 0;
   let placementCount = 0;
+  let appointmentCount = 0;
 
   db.exec("BEGIN");
   try {
     for (const { id } of cache.semesters) {
       const dir = path.join(CACHE_DIR, id.toString());
       const courseFiles = (
-        await glob("course*.json", { withFileTypes: true, cwd: dir })
+        await glob("course[0-9]*.json", { withFileTypes: true, cwd: dir })
       ).filter((f) => f.isFile());
 
       for (const file of courseFiles) {
@@ -160,11 +200,36 @@ async function main() {
           ects_credits: c.ectsCredits ?? null,
           course_type_key: c.courseTypeDto?.key ?? null,
           course_type_name: c.courseTypeDto?.courseTypeName?.value ?? null,
+          // SST is the course norm config carrying the SWS ("Semesterwochenstunden")
+          sws: c.courseNormConfigs?.find((n) => n.key === "SST")?.value ?? null,
           exam_method: c.examinationMethodName?.value ?? null,
           registration_available: c.registrationAvailable ? 1 : 0,
           elearning_active: c.eLearningActive ? 1 : 0,
         });
         courseCount++;
+
+        for (const group of course.courseGroups ?? []) {
+          insertGroup.run({
+            id: group.id,
+            course_id: c.id,
+            name: group.name,
+            // RWTHonline spells booleans J/N (Ja/Nein)
+            standard_group: group.standardgroupFlag === "J" ? 1 : 0,
+          });
+        }
+        for (const slot of summarizeAppointments(course.courseGroups ?? [])) {
+          insertAppointment.run({
+            course_id: c.id,
+            group_name: slot.group ?? null,
+            weekday: slot.weekday,
+            weekday_sort: slot.weekdaySort,
+            starts_at: slot.from,
+            ends_at: slot.to,
+            room: slot.room,
+            occurrences: slot.count,
+          });
+          appointmentCount++;
+        }
 
         for (const { coCurriculumPositionDto: pos } of course.curriculumPositions) {
           const study = pos.studyNameInfoDto;
@@ -227,6 +292,7 @@ async function main() {
   console.log("#Semesters:", cache.semesters.length);
   console.log("#Courses:", courseCount);
   console.log("#Placements:", placementCount);
+  console.log("#Appointments:", appointmentCount);
   console.log("DB written:", OUT_FILE, `(${(size / 1e6).toFixed(2)} MB)`);
 }
 

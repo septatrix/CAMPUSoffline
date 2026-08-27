@@ -16,6 +16,10 @@ as a plain, snappy, static website.
 
 - **Browse by semester → study → curriculum → course.** Pick a semester, pick your
   study programme, and walk the curriculum tree down to the individual courses.
+- **Configurable course table.** Every column can be sorted, filtered and hidden;
+  besides the dates of a course there are optional columns for SWS, the recommended
+  semester, the subject type and the examination method. The setup is kept in the URL,
+  so a configured view can simply be shared, and is remembered for the next visit.
 - **Advanced SQL query page** (`/query`, ⚠️ _work in progress_). The same data is
   also shipped as a single SQLite file. The page loads the official
   [SQLite WASM][sqlite-wasm] build entirely in your browser and lets you run
@@ -32,7 +36,7 @@ generation step:
 | Stage | Script | Output |
 | --- | --- | --- |
 | Fetch | [`fetch-data.ts`](./fetch-data.ts) | Raw course JSON in `~/.cache/campusoffline/<semesterId>/course<id>.json` |
-| Transform | [`transform.ts`](./transform.ts) | Per-semester `studiesTree.json` powering the browse pages |
+| Transform | [`transform.ts`](./transform.ts) | Per-semester `studiesTree.json` and `courses.json` powering the browse pages |
 | Build DB | [`build-db.ts`](./build-db.ts) | `public/db/courses.sqlite3` powering the query page |
 | Generate | `nuxt generate` | Static site in `.output/public` |
 
@@ -48,7 +52,13 @@ during prerendering, so the deployed site is 100% static.
 - `curricula` — one row per study programme / curriculum version
 - `curriculum_nodes` — the curriculum tree as an adjacency list (`parent_element_id`)
 - `course_placements` — fact table linking each course to where it sits in a study
+- `course_groups` — the (registration) groups a course is split into
+- `course_appointments` — recurring slots per course: the individual dates of a term
+  collapsed into one row per weekday/time/room, cancelled dates excluded
 - `meta` — `fetched_at` / `generated_at` timestamps
+
+Course dates come from RWTHonline's course group resource. Exam courses
+(_Fach-/Modulprüfung_) are not part of it, so those courses carry no appointments.
 
 The query page downloads this file once and loads it into an in-memory database via
 [`sqlite3_deserialize`][deserialize]. This in-memory path needs no cross-origin
