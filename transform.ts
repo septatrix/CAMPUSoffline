@@ -5,7 +5,8 @@ import pMap, { pMapIterable } from "p-map";
 import groupBy from "object.groupby";
 import { glob } from "glob";
 import type { SerializedCourse } from "./serialized-course";
-import type { StudiesTree } from "./studies-tree";
+import type { CourseInfo, StudiesTree } from "./studies-tree";
+import { summarizeAppointments } from "./appointments.ts";
 
 type TreeNode = {
   name: string;
@@ -13,12 +14,14 @@ type TreeNode = {
   children: Record<number, TreeNode>;
 
   credits?: number;
-  courseTypeDto?: string;
+  subjectType?: string;
+  semesterRecommendation?: string;
 };
 
 async function transformDir(dir: string) {
   const courseFiles = (
-    await glob("course*.json", {
+    // course<id>.json, i.e. everything but the derived courses.json
+    await glob("course[0-9]*.json", {
       withFileTypes: true,
       cwd: dir,
     })
@@ -28,6 +31,7 @@ async function transformDir(dir: string) {
   let progress = 0;
 
   const studies = [];
+  const courses: Record<number, CourseInfo> = {};
 
   for await (const studyInfos of await pMapIterable(
     courseFiles,
@@ -38,6 +42,19 @@ async function transformDir(dir: string) {
     },
     { concurrency: 10 }
   )) {
+    const course = studyInfos.courseDetail.cpCourseDto;
+    courses[course.id] = {
+      courseType: course.courseTypeDto.courseTypeName.value,
+      // SST is the course norm config carrying the SWS ("Semesterwochenstunden")
+      sws: course.courseNormConfigs?.find((c) => c.key === "SST")?.value,
+      // RWTHonline uses "---" where no examination method is set
+      examMethod:
+        course.examinationMethodName?.value === "---"
+          ? undefined
+          : course.examinationMethodName?.value,
+      appointments: summarizeAppointments(studyInfos.courseGroups ?? []),
+    };
+
     for (const {
       coCurriculumPositionDto: studyInfo,
     } of studyInfos.curriculumPositions) {
@@ -58,12 +75,13 @@ async function transformDir(dir: string) {
             credits:
               studyInfo.creditsDto?.value ??
               studyInfos.courseDetail.cpCourseDto.ectsCredits,
-            courseTypeDto:
-              studyInfos.courseDetail.cpCourseDto.courseTypeDto.courseTypeName
-                .value,
+            subjectType: studyInfo.subjectTypeDto?.value?.value,
+            semesterRecommendation:
+              studyInfo.semesterRecommendationDto?.keyWinterstarter,
           } satisfies (typeof studyInfo.curriculumPositionPathDto.path)[number] & {
             credits: number | undefined;
-            courseTypeDto: string;
+            subjectType: string | undefined;
+            semesterRecommendation: string | undefined;
           },
         ],
       });
@@ -98,7 +116,9 @@ async function transformDir(dir: string) {
             };
             if ("credits" in entry) {
               node.children[elementId].credits = entry.credits;
-              node.children[elementId].courseTypeDto = entry.courseTypeDto;
+              node.children[elementId].subjectType = entry.subjectType;
+              node.children[elementId].semesterRecommendation =
+                entry.semesterRecommendation;
             }
           }
           node = node.children[elementId];
@@ -124,6 +144,11 @@ async function transformDir(dir: string) {
     path.join(dir, "studiesTree.json"),
     JSON.stringify(studiesTree, null, 2)
   );
+
+  // Every course sits in a handful of curriculum positions,
+  // so the attributes shared by all of them live in their own file
+  // instead of being repeated for each placement in the tree.
+  await fs.writeFile(path.join(dir, "courses.json"), JSON.stringify(courses));
 }
 
 async function main() {

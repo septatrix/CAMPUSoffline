@@ -7,6 +7,7 @@ import type { CoursesResponse } from "./courses-resp";
 import type { SemestersResponse } from "./semesters-resp";
 import type { CourseResponse } from "./course-resp";
 import type { CurriculumPositionsResponse } from "./curriculum-pos-resp";
+import type { CourseGroupsResponse } from "./course-groups-resp";
 
 const MAX_PAGE_SIZE = 100;
 const CONCURRENCY_LIMIT = 100;
@@ -89,6 +90,27 @@ async function main() {
   ).flat();
   console.log("#Requests (to fetch course data):", courses.length);
 
+  // Appointments live in a separate resource which only hands out the first five groups;
+  // the remainder has to be requested explicitly.
+  // Courses without any group (e.g. exams) simply have no dates here.
+  const fetchCourseGroups = async (courseId: number) => {
+    try {
+      const first = await client
+        .get(`slc.tm.cp/student/courseGroups/firstGroups/${courseId}`)
+        .json<CourseGroupsResponse>();
+      if ((first.totalCount ?? 0) <= first.courseGroupDtos.length) {
+        return first.courseGroupDtos;
+      }
+      const remaining = await client
+        .get(`slc.tm.cp/student/courseGroups/remainingGroups/${courseId}`)
+        .json<CourseGroupsResponse>();
+      return [...first.courseGroupDtos, ...remaining.courseGroupDtos];
+    } catch (e) {
+      console.error(`Could not fetch groups of course ${courseId}`, e);
+      return [];
+    }
+  };
+
   const fetchAndSave = async (courseId: number, storagePath: string) => {
     try {
       const resp = await client
@@ -107,6 +129,7 @@ async function main() {
             )
             .json<CurriculumPositionsResponse>()
         ).resource.map((res) => res.content),
+        courseGroups: await fetchCourseGroups(courseId),
       };
 
       // drop some keys we currently do not need to reduce file size
@@ -121,6 +144,11 @@ async function main() {
           "lectureships",
           "reference",
           "validFrom",
+          "resourceUrl",
+          "urlGroups",
+          "appointmentLectureshipDto",
+          "lectureshipDtos",
+          "courseGroupDto",
         ].includes(k)
           ? undefined
           : v;
