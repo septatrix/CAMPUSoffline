@@ -1,4 +1,5 @@
 import type { CourseGroupDto } from "./course-groups-resp";
+import type { ExamOffer } from "./exam-offer-resp";
 
 export type AppointmentSummary = {
   /** Abbreviated weekday as delivered by RWTHonline, e.g. "Mo.". */
@@ -85,6 +86,60 @@ export function formatAppointment(appointment: AppointmentSummary): string {
     `${weekday} ${appointment.from}-${appointment.to}`,
     appointment.room,
     `(×${appointment.count})`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export type ExamSummary = {
+  /** Day of the exam as "YYYY-MM-DD". */
+  date: string;
+  /** Start time as "HH:MM", missing for exams without a fixed time. */
+  from: string | null;
+  /** End time as "HH:MM". */
+  to: string | null;
+  /** The rooms the exam is written in. */
+  rooms: string[];
+  /** Free text such as "Zweittermin, zentral geplant". */
+  info: string | null;
+};
+
+/**
+ * The exam dates of a course, earliest first.
+ * A course usually has a first and a second date;
+ * exams which have not been scheduled yet are left out.
+ */
+export function summarizeExams(offers: readonly ExamOffer[]): ExamSummary[] {
+  return offers
+    .filter((offer) => offer.examDate?.value)
+    .map((offer) => ({
+      date: offer.examDate!.value.slice(0, 10),
+      from: offer.examStart?.value.slice(0, 5) ?? null,
+      to: offer.examEnd?.value.slice(0, 5) ?? null,
+      rooms: (offer.appointments ?? []).map(({ displayName }) => displayName),
+      info: offer.examDateInformation?.trim() || null,
+    }))
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(b.date) ||
+        (a.from ?? "").localeCompare(b.from ?? "")
+    );
+}
+
+const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+/**
+ * Render an exam date the way it is shown in the course table.
+ * The weekday is spelled out to match the lecture dates next to it,
+ * where it is the only thing telling you when a course takes place.
+ */
+export function formatExam(exam: ExamSummary): string {
+  const [year, month, day] = exam.date.split("-");
+  const weekday = WEEKDAYS[new Date(`${exam.date}T00:00:00Z`).getUTCDay()];
+  return [
+    `${weekday} ${day}.${month}.${year}`,
+    exam.from && exam.to ? `${exam.from}-${exam.to}` : exam.from,
+    exam.rooms.join(", "),
   ]
     .filter(Boolean)
     .join(" ");

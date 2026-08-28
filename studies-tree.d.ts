@@ -1,4 +1,4 @@
-import type { AppointmentSummary } from "./appointments";
+import type { AppointmentSummary, ExamSummary } from "./appointments";
 
 export type StudiesTree = { [key: string]: StudyInfo };
 
@@ -10,6 +10,7 @@ export type CourseInfo = {
   readonly sws?: string | undefined;
   readonly examMethod?: string | undefined;
   readonly appointments: AppointmentSummary[];
+  readonly exams: ExamSummary[];
 };
 
 export type StudyInfo = {

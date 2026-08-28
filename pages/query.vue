@@ -131,6 +131,10 @@ const examples = [
     sql: "SELECT c.title, c.course_type_name, a.weekday, a.starts_at, a.ends_at,\n       a.room, a.occurrences\nFROM course_appointments a\nJOIN courses c ON c.id = a.course_id\nWHERE a.weekday_sort = 1 AND a.starts_at < '12:00'\nORDER BY a.starts_at, c.title\nLIMIT 100;",
   },
   {
+    label: "Exams in September",
+    sql: "SELECT c.title, e.exam_date, e.starts_at, e.ends_at, e.rooms, e.info\nFROM exam_offers e\nJOIN courses c ON c.id = e.course_id\nWHERE e.exam_date LIKE '%-09-%'\nORDER BY e.exam_date, e.starts_at\nLIMIT 100;",
+  },
+  {
     label: "Title search",
     sql: "SELECT id, semester_id, title, ects_credits\nFROM courses\nWHERE title LIKE '%Algebra%'\nORDER BY title;",
   },

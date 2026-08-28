@@ -1,4 +1,4 @@
-import type { AppointmentSummary } from "./appointments";
+import type { AppointmentSummary, ExamSummary } from "./appointments";
 
 /** One course of a curriculum leaf, flattened for the course table. */
 export type CourseRow = {
@@ -13,5 +13,6 @@ export type CourseRow = {
   readonly subjectType: string | null;
   readonly examMethod: string | null;
   readonly appointments: AppointmentSummary[];
+  readonly exams: ExamSummary[];
   readonly courseId: string;
 };

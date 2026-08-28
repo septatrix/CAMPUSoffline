@@ -8,9 +8,13 @@ import type { SemestersResponse } from "./semesters-resp";
 import type { CourseResponse } from "./course-resp";
 import type { CurriculumPositionsResponse } from "./curriculum-pos-resp";
 import type { CourseGroupsResponse } from "./course-groups-resp";
+import type { ExamOffer, ExamOffersResponse } from "./exam-offer-resp";
 
 const MAX_PAGE_SIZE = 100;
+const EXAM_PAGE_SIZE = 500;
 const CONCURRENCY_LIMIT = 100;
+/** Course type key of a "Fach-/Modulprüfung", i.e. an exam. */
+const EXAM_COURSE_TYPE = "FA";
 const client = ky.create({
   prefix: "https://online.rwth-aachen.de/RWTHonline/ee/rest/",
 });
@@ -88,7 +92,45 @@ async function main() {
       { concurrency: CONCURRENCY_LIMIT }
     )
   ).flat();
-  console.log("#Requests (to fetch course data):", courses.length);
+
+  // The course listing above leaves out exams entirely, they are only known to
+  // the exam registration resource.
+  // It ignores a semester filter, so the whole set is fetched and grouped here.
+  const fetchExamOffers = async () => {
+    const semesterIds = new Set(recentSemesters.map(({ id }) => id));
+    const getPage = async ($skip: number) =>
+      await client
+        .get("slc.xm.exd/exExamOffer", {
+          searchParams: { $skip, $top: EXAM_PAGE_SIZE },
+        })
+        .json<ExamOffersResponse>();
+
+    const firstPage = await getPage(0);
+    const remaining = await pMap(
+      range(EXAM_PAGE_SIZE, firstPage.totalCount, EXAM_PAGE_SIZE),
+      async ($skip) => (await getPage($skip)).examOffers,
+      { concurrency: CONCURRENCY_LIMIT }
+    );
+
+    const offersByCourse = new Map<number, ExamOffer[]>();
+    for (const offer of [...firstPage.examOffers, ...remaining.flat()]) {
+      if (semesterIds.has(offer.courseSemesterId)) {
+        offersByCourse.set(offer.courseId, [
+          ...(offersByCourse.get(offer.courseId) ?? []),
+          offer,
+        ]);
+      }
+    }
+    return offersByCourse;
+  };
+
+  const examOffers = await fetchExamOffers();
+  console.log("#Exam courses:", examOffers.size);
+
+  const courseIds = [
+    ...new Set([...courses.map(({ id }) => id), ...examOffers.keys()]),
+  ];
+  console.log("#Requests (to fetch course data):", courseIds.length);
 
   // Appointments live in a separate resource which only hands out the first five groups;
   // the remainder has to be requested explicitly.
@@ -120,8 +162,12 @@ async function main() {
         resp.resource.length === 1,
         `Course ${courseId} does not have exactly one resource`
       );
+      const courseDetail = resp.resource[0].content.cpCourseDetailDto;
+      // Exams are never split into groups, asking anyway would waste a request
+      const isExam =
+        courseDetail.cpCourseDto.courseTypeDto?.key === EXAM_COURSE_TYPE;
       const courseData = {
-        courseDetail: resp.resource[0].content.cpCourseDetailDto,
+        courseDetail,
         curriculumPositions: (
           await client
             .get(
@@ -129,7 +175,8 @@ async function main() {
             )
             .json<CurriculumPositionsResponse>()
         ).resource.map((res) => res.content),
-        courseGroups: await fetchCourseGroups(courseId),
+        courseGroups: isExam ? [] : await fetchCourseGroups(courseId),
+        examOffers: examOffers.get(courseId) ?? [],
       };
 
       // drop some keys we currently do not need to reduce file size
@@ -149,6 +196,9 @@ async function main() {
           "appointmentLectureshipDto",
           "lectureshipDtos",
           "courseGroupDto",
+          "examPersons",
+          "courseLink",
+          "url",
         ].includes(k)
           ? undefined
           : v;
@@ -174,8 +224,8 @@ async function main() {
       })
   );
   const resps = await pMap(
-    courses,
-    (course) => fetchAndSave(course.id, storagePath),
+    courseIds,
+    (courseId) => fetchAndSave(courseId, storagePath),
     { concurrency: CONCURRENCY_LIMIT }
   );
 
