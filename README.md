@@ -18,7 +18,7 @@ as a plain, snappy, static website.
   study programme, and walk the curriculum tree down to the individual courses.
 - **Configurable course table.** Every column can be sorted, filtered and hidden;
   besides the dates of a course there are optional columns for SWS, the recommended
-  semester, the subject type and the examination method. The setup is kept in the URL,
+  semester, the subject type, the examination method and the RWTHonline course id. The setup is kept in the URL,
   so a configured view can simply be shared, and is remembered for the next visit.
 - **Advanced SQL query page** (`/query`, ⚠️ _work in progress_). The same data is
   also shipped as a single SQLite file. The page loads the official
