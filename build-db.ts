@@ -5,7 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 import { glob } from "glob";
 import type { SerializedCourse } from "./serialized-course";
 import type { Semester } from "./semesters-resp";
-import { summarizeAppointments } from "./appointments.ts";
+import { summarizeAppointments, summarizeExams } from "./appointments.ts";
 
 const CACHE_DIR = path.join(homedir(), ".cache/campusoffline");
 const OUT_DIR = path.resolve("public/db");
@@ -90,6 +90,22 @@ CREATE TABLE course_appointments (
   occurrences  INTEGER
 );
 
+-- Exam dates of a course, one row per date it is written on. Only exams which
+-- are already scheduled appear here.
+CREATE TABLE exam_offers (
+  course_id          INTEGER REFERENCES courses(id),
+  exam_date          TEXT,
+  starts_at          TEXT,
+  ends_at            TEXT,
+  rooms              TEXT,
+  info               TEXT,
+  exam_type          TEXT,
+  registration_start TEXT,
+  registration_end   TEXT,
+  participants       INTEGER,
+  max_participants   INTEGER
+);
+
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 `;
 
@@ -102,6 +118,8 @@ CREATE INDEX idx_nodes_parent        ON curriculum_nodes(curriculum_version_id, 
 CREATE INDEX idx_groups_course       ON course_groups(course_id);
 CREATE INDEX idx_appointments_course ON course_appointments(course_id);
 CREATE INDEX idx_appointments_slot   ON course_appointments(weekday_sort, starts_at);
+CREATE INDEX idx_exams_course        ON exam_offers(course_id);
+CREATE INDEX idx_exams_date          ON exam_offers(exam_date, starts_at);
 `;
 
 async function main() {
@@ -155,6 +173,14 @@ async function main() {
      VALUES (@course_id, @group_name, @weekday, @weekday_sort, @starts_at,
         @ends_at, @room, @occurrences)`
   );
+  const insertExam = db.prepare(
+    `INSERT INTO exam_offers
+       (course_id, exam_date, starts_at, ends_at, rooms, info, exam_type,
+        registration_start, registration_end, participants, max_participants)
+     VALUES (@course_id, @exam_date, @starts_at, @ends_at, @rooms, @info,
+        @exam_type, @registration_start, @registration_end, @participants,
+        @max_participants)`
+  );
   const insertPlacement = db.prepare(
     `INSERT INTO course_placements
        (course_id, curriculum_version_id, leaf_element_id, credits,
@@ -177,6 +203,7 @@ async function main() {
   let courseCount = 0;
   let placementCount = 0;
   let appointmentCount = 0;
+  let examCount = 0;
 
   db.exec("BEGIN");
   try {
@@ -229,6 +256,29 @@ async function main() {
             occurrences: slot.count,
           });
           appointmentCount++;
+        }
+
+        for (const offer of course.examOffers ?? []) {
+          // Summarizing a single offer keeps the date handling in one place;
+          // it yields nothing for exams which are not scheduled yet
+          const [exam] = summarizeExams([offer]);
+          if (!exam) {
+            continue;
+          }
+          insertExam.run({
+            course_id: c.id,
+            exam_date: exam.date,
+            starts_at: exam.from,
+            ends_at: exam.to,
+            rooms: exam.rooms.join(", ") || null,
+            info: exam.info,
+            exam_type: offer.examType?.value ?? null,
+            registration_start: offer.registrationDateStart?.value ?? null,
+            registration_end: offer.registrationDateEnd?.value ?? null,
+            participants: offer.numberOfParticipants ?? null,
+            max_participants: offer.maxNumberOfParticipants ?? null,
+          });
+          examCount++;
         }
 
         for (const { coCurriculumPositionDto: pos } of course.curriculumPositions) {
@@ -293,6 +343,7 @@ async function main() {
   console.log("#Courses:", courseCount);
   console.log("#Placements:", placementCount);
   console.log("#Appointments:", appointmentCount);
+  console.log("#Exam dates:", examCount);
   console.log("DB written:", OUT_FILE, `(${(size / 1e6).toFixed(2)} MB)`);
 }
 

@@ -48,6 +48,7 @@ function flatten(
         subjectType: course.subjectType ?? null,
         examMethod: course.examMethod ?? null,
         appointments: course.appointments ?? [],
+        exams: course.exams ?? [],
         courseId: id,
       } satisfies CourseRow,
     ];

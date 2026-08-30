@@ -1,9 +1,11 @@
 import type { CourseGroupDto } from "./course-groups-resp";
+import type { ExamOffer } from "./exam-offer-resp";
 
 export type SerializedCourse = {
     readonly courseDetail:        CourseDetail;
     readonly curriculumPositions: CurriculumPosition[];
     readonly courseGroups:        CourseGroupDto[];
+    readonly examOffers:          ExamOffer[];
 }
 
 export type CourseDetail = {

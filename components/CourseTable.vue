@@ -85,8 +85,8 @@
             {{ row.courseType }}
           </td>
           <td v-else-if="column.key === 'dates'" class="dates">
-            <template v-for="(slot, idx) in row.appointments" :key="idx">
-              <br v-if="idx > 0" />{{ formatAppointment(slot) }}
+            <template v-for="(line, idx) in dateLines(row)" :key="idx">
+              <br v-if="idx > 0" />{{ line }}
             </template>
           </td>
           <td v-else-if="column.key === 'id'">
@@ -106,8 +106,19 @@
 </template>
 
 <script setup lang="ts">
-import { formatAppointment } from "~/appointments";
+import { formatAppointment, formatExam } from "~/appointments";
 import type { CourseRow } from "~/course-row";
+
+/**
+ * When a course takes place.
+ * Exams have no weekly slots but a date of their own,
+ * so they fill the same column with the day they are written on.
+ */
+function dateLines(row: CourseRow): string[] {
+  return row.appointments.length
+    ? row.appointments.map(formatAppointment)
+    : row.exams.map(formatExam);
+}
 
 type Column = {
   key: string;
@@ -182,7 +193,7 @@ const columns: Column[] = [
   },
   {
     key: "exam",
-    label: "Examination",
+    label: "Exam Method",
     default: false,
     filter: "text",
     text: (row) => row.examMethod ?? "",
@@ -192,12 +203,15 @@ const columns: Column[] = [
     label: "Dates",
     default: true,
     filter: "text",
-    text: (row) => row.appointments.map(formatAppointment).join("\n"),
+    text: (row) => dateLines(row).join("\n"),
+    // Weekly slots sort by weekday, exams by their date and both before the
+    // courses without any date at all
     sortKey: (row) =>
       row.appointments.length
-        ? row.appointments[0].weekdaySort * 10000 +
-          Number(row.appointments[0].from.replace(":", ""))
-        : Number.POSITIVE_INFINITY,
+        ? `A${row.appointments[0].weekdaySort} ${row.appointments[0].from}`
+        : row.exams.length
+        ? `B${row.exams[0].date} ${row.exams[0].from ?? ""}`
+        : "Z",
   },
   {
     key: "id",

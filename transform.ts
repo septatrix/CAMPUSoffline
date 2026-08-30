@@ -6,7 +6,7 @@ import groupBy from "object.groupby";
 import { glob } from "glob";
 import type { SerializedCourse } from "./serialized-course";
 import type { CourseInfo, StudiesTree } from "./studies-tree";
-import { summarizeAppointments } from "./appointments.ts";
+import { summarizeAppointments, summarizeExams } from "./appointments.ts";
 
 type TreeNode = {
   name: string;
@@ -53,6 +53,7 @@ async function transformDir(dir: string) {
           ? undefined
           : course.examinationMethodName?.value,
       appointments: summarizeAppointments(studyInfos.courseGroups ?? []),
+      exams: summarizeExams(studyInfos.examOffers ?? []),
     };
 
     for (const {

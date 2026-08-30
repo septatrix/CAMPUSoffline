@@ -55,10 +55,16 @@ during prerendering, so the deployed site is 100% static.
 - `course_groups` — the (registration) groups a course is split into
 - `course_appointments` — recurring slots per course: the individual dates of a term
   collapsed into one row per weekday/time/room, cancelled dates excluded
+- `exam_offers` — one row per date an exam is written on, with rooms and registration
+  period
 - `meta` — `fetched_at` / `generated_at` timestamps
 
-Course dates come from RWTHonline's course group resource. Exam courses
-(_Fach-/Modulprüfung_) are not part of it, so those courses carry no appointments.
+Course dates come from RWTHonline's course group resource, exam dates from its exam
+offer resource. The latter is also how exams are found at all: the course listing the
+scraper pages through leaves out _Fach-/Modulprüfungen_ entirely, which is why the ECTS
+of a module sit on a row of their own. Note that RWTHonline drops exam offers of past
+semesters over time, so older semesters know far fewer exams than the current one, and
+exams which are not scheduled yet have no date.
 
 The query page downloads this file once and loads it into an in-memory database via
 [`sqlite3_deserialize`][deserialize]. This in-memory path needs no cross-origin
