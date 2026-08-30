@@ -9,15 +9,14 @@ import type { CourseResponse } from "./course-resp";
 import type { CurriculumPositionsResponse } from "./curriculum-pos-resp";
 import type { CourseGroupsResponse } from "./course-groups-resp";
 import type { ExamOffer, ExamOffersResponse } from "./exam-offer-resp";
+import * as endpoints from "./endpoints.ts";
 
 const MAX_PAGE_SIZE = 100;
 const EXAM_PAGE_SIZE = 500;
 const CONCURRENCY_LIMIT = 100;
 /** Course type key of a "Fach-/Modulprüfung", i.e. an exam. */
 const EXAM_COURSE_TYPE = "FA";
-const client = ky.create({
-  prefix: "https://online.rwth-aachen.de/RWTHonline/ee/rest/",
-});
+const client = ky.create({ prefix: endpoints.REST_API });
 
 function range(start: number, stop: number, step = 1) {
   if (stop === undefined) {
@@ -41,7 +40,7 @@ function range(start: number, stop: number, step = 1) {
 
 async function main() {
   const semesterData = await client
-    .get("slc.lib.tm/semesters/student")
+    .get(endpoints.SEMESTERS)
     .json<SemestersResponse>()
     .then((data) => data.semesters);
   console.log("#Semesters:", semesterData.length);
@@ -56,7 +55,7 @@ async function main() {
 
   const semesterIdAndCourseCnt = await pMap(recentSemesters, async ({ id }) => {
     const courseCnt = await client
-      .get("slc.tm.cp/student/courses", {
+      .get(endpoints.COURSES, {
         searchParams: {
           $skip: 0,
           $top: 1,
@@ -86,7 +85,7 @@ async function main() {
       searchParams,
       async (searchParams) =>
         await client
-          .get("slc.tm.cp/student/courses", { searchParams })
+          .get(endpoints.COURSES, { searchParams })
           .json<CoursesResponse>()
           .then((data) => data.courses),
       { concurrency: CONCURRENCY_LIMIT }
@@ -100,7 +99,7 @@ async function main() {
     const semesterIds = new Set(recentSemesters.map(({ id }) => id));
     const getPage = async ($skip: number) =>
       await client
-        .get("slc.xm.exd/exExamOffer", {
+        .get(endpoints.EXAM_OFFERS, {
           searchParams: { $skip, $top: EXAM_PAGE_SIZE },
         })
         .json<ExamOffersResponse>();
@@ -138,13 +137,13 @@ async function main() {
   const fetchCourseGroups = async (courseId: number) => {
     try {
       const first = await client
-        .get(`slc.tm.cp/student/courseGroups/firstGroups/${courseId}`)
+        .get(endpoints.firstCourseGroups(courseId))
         .json<CourseGroupsResponse>();
       if ((first.totalCount ?? 0) <= first.courseGroupDtos.length) {
         return first.courseGroupDtos;
       }
       const remaining = await client
-        .get(`slc.tm.cp/student/courseGroups/remainingGroups/${courseId}`)
+        .get(endpoints.remainingCourseGroups(courseId))
         .json<CourseGroupsResponse>();
       return [...first.courseGroupDtos, ...remaining.courseGroupDtos];
     } catch (e) {
@@ -156,7 +155,7 @@ async function main() {
   const fetchAndSave = async (courseId: number, storagePath: string) => {
     try {
       const resp = await client
-        .get(`slc.tm.cp/student/courses/${courseId}`)
+        .get(endpoints.course(courseId))
         .json<CourseResponse>();
       console.assert(
         resp.resource.length === 1,
@@ -170,9 +169,7 @@ async function main() {
         courseDetail,
         curriculumPositions: (
           await client
-            .get(
-              `slc.cm.curriculumposition/positions/${courseId}/course/allCurriculumPositions`
-            )
+            .get(endpoints.curriculumPositions(courseId))
             .json<CurriculumPositionsResponse>()
         ).resource.map((res) => res.content),
         courseGroups: isExam ? [] : await fetchCourseGroups(courseId),

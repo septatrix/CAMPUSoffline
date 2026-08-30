@@ -90,9 +90,7 @@
             </template>
           </td>
           <td v-else-if="column.key === 'id'">
-            <a
-              :href="`https://online.rwth-aachen.de/RWTHonline/ee/ui/ca2/app/desktop/#/slc.tm.cp/student/courses/${row.courseId}`"
-            >
+            <a :href="coursePage(row.courseId)">
               {{ row.courseId }}
             </a>
           </td>
@@ -107,6 +105,7 @@
 
 <script setup lang="ts">
 import { formatAppointment, formatExam } from "~/appointments";
+import { coursePage } from "~/endpoints";
 import type { CourseRow } from "~/course-row";
 
 /**

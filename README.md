@@ -43,6 +43,9 @@ generation step:
 The browse pages are served by [Nuxt][nuxt] server routes that read the cached JSON
 during prerendering, so the deployed site is 100% static.
 
+Every RWTHonline endpoint the scraper talks to is listed in
+[`endpoints.ts`](./endpoints.ts); none of them needs authentication.
+
 ### The SQLite database
 
 `build-db.ts` reshapes the cached course data into a small relational schema:
