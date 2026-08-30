@@ -81,17 +81,24 @@
             </td>
           </template>
           <td v-else-if="column.key === 'type'">
-            (<i :class="`icon_${row.iconName}`" />)
+            <i :class="`icon_${row.iconName}`" />
             {{ row.courseType }}
           </td>
           <td v-else-if="column.key === 'dates'" class="dates">
-            <template v-for="(line, idx) in dateLines(row)" :key="idx">
-              <br v-if="idx > 0" />{{ line }}
-            </template>
+            <span class="slots">
+              <template v-for="(cells, idx) in dateCells(row)" :key="idx">
+                <span
+                  v-for="(cell, cellIdx) in cells"
+                  :key="cellIdx"
+                  :class="{ blank: !cell }"
+                  >{{ cell }}</span
+                >
+              </template>
+            </span>
           </td>
-          <td v-else-if="column.key === 'id'">
+          <td v-else-if="column.key === 'title'">
             <a :href="coursePage(row.courseId)">
-              {{ row.courseId }}
+              {{ row.title }}
             </a>
           </td>
           <td v-else :class="{ numeric: column.numeric }">
@@ -104,15 +111,28 @@
 </template>
 
 <script setup lang="ts">
-import { formatAppointment, formatExam } from "~/appointments";
+import {
+  appointmentCells,
+  examCells,
+  formatAppointment,
+  formatExam,
+} from "~/appointments";
 import { coursePage } from "~/endpoints";
 import type { CourseRow } from "~/course-row";
 
 /**
- * When a course takes place.
+ * When a course takes place, one entry per slot,
+ * each split into the parts the Dates column aligns into columns.
  * Exams have no weekly slots but a date of their own,
  * so they fill the same column with the day they are written on.
  */
+function dateCells(row: CourseRow): string[][] {
+  return row.appointments.length
+    ? row.appointments.map(appointmentCells)
+    : row.exams.map(examCells);
+}
+
+/** The same slots as plain text, for filtering and sorting. */
 function dateLines(row: CourseRow): string[] {
   return row.appointments.length
     ? row.appointments.map(formatAppointment)
@@ -145,18 +165,18 @@ const columns: Column[] = [
     text: (row) => row.module,
   },
   {
-    key: "type",
-    label: "Course Type",
-    default: true,
-    filter: "select",
-    text: (row) => row.courseType,
-  },
-  {
     key: "title",
     label: "Name",
     default: true,
     filter: "text",
     text: (row) => row.title,
+  },
+  {
+    key: "type",
+    label: "Course Type",
+    default: true,
+    filter: "select",
+    text: (row) => row.courseType,
   },
   {
     key: "credits",
@@ -214,8 +234,9 @@ const columns: Column[] = [
   },
   {
     key: "id",
-    label: "ID",
-    default: true,
+    // The number RWTHonline itself shows for a course, e.g. in its search
+    label: "LV-ID",
+    default: false,
     filter: "text",
     numeric: true,
     text: (row) => row.courseId,
@@ -457,5 +478,21 @@ button.sort {
 }
 .dates {
   white-space: nowrap;
+}
+/*
+  One grid cell per part of a slot,
+  so occurrences, group, weekday with time and room line up
+  across the slots of a course.
+*/
+.slots {
+  display: inline-grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: start;
+}
+.slots > span:not(:nth-child(4n)):not(.blank) {
+  padding-right: 0.5em;
+}
+.slots > span:nth-child(4n + 1) {
+  text-align: right;
 }
 </style>

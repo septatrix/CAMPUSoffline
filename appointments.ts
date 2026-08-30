@@ -74,21 +74,30 @@ export function summarizeAppointments(
 }
 
 /**
- * Render a slot the way it is shown in the course table.
+ * The parts a slot is made of,
+ * in the order the course table shows them:
+ * how often it takes place, group, weekday with time, and room.
+ * They are handed out separately so the table can align them into columns;
+ * parts which do not apply are empty.
+ */
+export function appointmentCells(appointment: AppointmentSummary): string[] {
+  const weekday = appointment.weekday.replace(/\.$/, "");
+  return [
+    `×${appointment.count}`,
+    appointment.group ?? "",
+    `${weekday} ${appointment.from}-${appointment.to}`,
+    appointment.room ?? "",
+  ];
+}
+
+/**
+ * Render a slot as a single line.
  * The occurrences are always spelled out:
  * a slot which only takes place once still shows up with a weekday
  * and would otherwise look like a weekly one.
  */
 export function formatAppointment(appointment: AppointmentSummary): string {
-  const weekday = appointment.weekday.replace(/\.$/, "");
-  return [
-    appointment.group,
-    `${weekday} ${appointment.from}-${appointment.to}`,
-    appointment.room,
-    `(×${appointment.count})`,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return appointmentCells(appointment).filter(Boolean).join(" ");
 }
 
 export type ExamSummary = {
@@ -129,18 +138,27 @@ export function summarizeExams(offers: readonly ExamOffer[]): ExamSummary[] {
 const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 /**
- * Render an exam date the way it is shown in the course table.
+ * The parts of an exam date, laid out like {@link appointmentCells}.
+ * An exam takes place once and knows no groups,
+ * so the leading columns stay empty and the date takes the slot of the weekday.
+ */
+export function examCells(exam: ExamSummary): string[] {
+  const [year, month, day] = exam.date.split("-");
+  const weekday = WEEKDAYS[new Date(`${exam.date}T00:00:00Z`).getUTCDay()];
+  const time = exam.from && exam.to ? `${exam.from}-${exam.to}` : exam.from;
+  return [
+    "",
+    "",
+    `${weekday} ${day}.${month}.${year}${time ? ` ${time}` : ""}`,
+    exam.rooms.join(", "),
+  ];
+}
+
+/**
+ * Render an exam date as a single line.
  * The weekday is spelled out to match the lecture dates next to it,
  * where it is the only thing telling you when a course takes place.
  */
 export function formatExam(exam: ExamSummary): string {
-  const [year, month, day] = exam.date.split("-");
-  const weekday = WEEKDAYS[new Date(`${exam.date}T00:00:00Z`).getUTCDay()];
-  return [
-    `${weekday} ${day}.${month}.${year}`,
-    exam.from && exam.to ? `${exam.from}-${exam.to}` : exam.from,
-    exam.rooms.join(", "),
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return examCells(exam).filter(Boolean).join(" ");
 }
