@@ -1,4 +1,6 @@
 <template>
+  <BreadcrumbNav :items="breadcrumbs" />
+
   <h1>{{ data?.name }}</h1>
   <CourseTable :rows="rows" />
 </template>
@@ -16,6 +18,42 @@ const { data } = await useFetch(
     route.params.path as string[]
   ).join("/")}`
 );
+
+const { data: study } = await useFetch(
+  `/api/semesters/${route.params.term}/studies/${route.params.id}`
+);
+const { data: semesters } = await useFetch("/api/semesters");
+
+/** One crumb per level of the curriculum tree leading to this page. */
+const breadcrumbs = computed(() => {
+  const term = route.params.term;
+  const studyBase = `/semesters/${term}/studies/${route.params.id}/`;
+  const semester = semesters.value?.find((s) => s.id === parseInt(term as string));
+  const crumbs: { label: string; to?: string }[] = [
+    { label: "Home", to: "/" },
+    {
+      label: semester?.semesterDesignation.value ?? "Semester",
+      to: `/semesters/${term}/`,
+    },
+    {
+      label: study.value
+        ? `${study.value.studyNameInfo.name.value} (${study.value.studyNameInfo.curriculumVersionIdentification})`
+        : "Study",
+      to: studyBase,
+    },
+  ];
+  const ids = (route.params.path as string[]).filter(Boolean);
+  let children: PathEntry["children"] | undefined = study.value?.currics;
+  ids.forEach((id, i) => {
+    const node: PathEntry | undefined = children?.[id];
+    crumbs.push({
+      label: node?.name ?? id,
+      to: `${studyBase}courses/${ids.slice(0, i + 1).join("/")}/`,
+    });
+    children = node?.children;
+  });
+  return crumbs;
+});
 
 /**
  * The depth below a curriculum node varies,
