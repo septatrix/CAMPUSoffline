@@ -13,10 +13,13 @@ const LEAF_NODE = "stp_empty";
 const MODULE_NODE = "stp_3";
 
 const route = useRoute();
+// Breadcrumbs navigate within this catch-all route, which reuses the component,
+// so the URL has to be reactive for the data to follow.
 const { data } = await useFetch(
-  `/api/semesters/${route.params.term}/studies/${route.params.id}/courses/${(
-    route.params.path as string[]
-  ).join("/")}`
+  () =>
+    `/api/semesters/${route.params.term}/studies/${route.params.id}/courses/${(
+      route.params.path as string[]
+    ).join("/")}`
 );
 
 const { data: study } = await useFetch(
