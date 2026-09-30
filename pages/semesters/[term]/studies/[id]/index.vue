@@ -1,4 +1,6 @@
 <template>
+  <BreadcrumbNav :items="breadcrumbs" />
+
   <h1>{{ currSemester?.semesterDesignation.value }}</h1>
 
   <h2>
@@ -33,4 +35,17 @@ const { data: semesters } = await useFetch("/api/semesters");
 const currSemester = computed(() =>
   semesters.value?.find((s) => s.id === parseInt(route.params.term as string))
 );
+
+const breadcrumbs = computed(() => [
+  { label: "Home", to: "/" },
+  {
+    label: currSemester.value?.semesterDesignation.value ?? "Semester",
+    to: `/semesters/${route.params.term}/`,
+  },
+  {
+    label: `${data.value!.studyNameInfo.name.value} (${
+      data.value!.studyNameInfo.curriculumVersionIdentification
+    })`,
+  },
+]);
 </script>

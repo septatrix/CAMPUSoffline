@@ -1,12 +1,26 @@
 <template>
+  <BreadcrumbNav :items="breadcrumbs" />
+
   <h1>{{ currSemester?.semesterDesignation.value }}</h1>
 
+  <input
+    v-model="search"
+    type="search"
+    class="study-search"
+    placeholder="Search studies, e.g. Informatik"
+    aria-label="Search studies"
+    size="32"
+    autofocus
+  />
+
+  <p v-if="!studyTree.length">No studies match “{{ search }}”.</p>
+
   <ul class="slim nowrap stp_1">
-    <li v-for="[type, studies] in studyTree">
+    <li v-for="[type, studies] in studyTree" :key="type">
       <details open>
         <summary>{{ type }}</summary>
         <ul class="slim study-class stp_0">
-          <li v-for="study in studies">
+          <li v-for="study in studies" :key="study.id">
             <a :href="`studies/${study.id}/`">
               {{ study.name }} ({{ study.version }})
             </a>
@@ -62,13 +76,26 @@ const SORT_ORDER = [
   "Erweiterungsstudium Master Lehramt an Berufskollegs",
 ];
 
+const breadcrumbs = computed(() => [
+  { label: "Home", to: "/" },
+  { label: currSemester.value?.semesterDesignation.value ?? "Semester" },
+]);
+
+const search = ref("");
+
 const studyTree = computed(() => {
-  const studies = data.value!.map((s) => ({
-    id: s.curriculumVersionId,
-    type: s.displayedType.value,
-    name: s.name.value,
-    version: s.curriculumVersionIdentification,
-  }));
+  const terms = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+  const studies = data
+    .value!.map((s) => ({
+      id: s.curriculumVersionId,
+      type: s.displayedType.value,
+      name: s.name.value,
+      version: s.curriculumVersionIdentification,
+    }))
+    .filter(({ name, version, type }) => {
+      const haystack = `${name} ${version} ${type}`.toLowerCase();
+      return terms.every((term) => haystack.includes(term));
+    });
   return Object.entries(groupBy(studies, ({ type }) => type))
     .map(
       ([group, entries]) =>
@@ -85,3 +112,11 @@ const studyTree = computed(() => {
     );
 });
 </script>
+
+<style scoped>
+.study-search {
+  /* form controls do not inherit the page font by default */
+  font: inherit;
+  margin-bottom: 1em;
+}
+</style>
