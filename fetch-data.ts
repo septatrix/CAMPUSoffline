@@ -13,10 +13,21 @@ import * as endpoints from "./endpoints.ts";
 
 const MAX_PAGE_SIZE = 100;
 const EXAM_PAGE_SIZE = 500;
-const CONCURRENCY_LIMIT = 100;
+/**
+ * Requests in flight at once.
+ * Kept low to not put a burden on RWTHonline,
+ * which also starts blocking CI runners when hammered.
+ */
+const CONCURRENCY_LIMIT = 8;
 /** Course type key of a "Fach-/Modulprüfung", i.e. an exam. */
 const EXAM_COURSE_TYPE = "FA";
-const client = ky.create({ prefix: endpoints.REST_API });
+/** Tells the RWTHonline admins who is fetching the data and where to reach out. */
+const USER_AGENT =
+  "CAMPUSoffline/1.0 (+https://github.com/septatrix/CAMPUSoffline)";
+const client = ky.create({
+  prefix: endpoints.REST_API,
+  headers: { "User-Agent": USER_AGENT },
+});
 
 function range(start: number, stop: number, step = 1) {
   if (stop === undefined) {
@@ -53,19 +64,23 @@ async function main() {
   );
   console.log("#Recent Semesters:", recentSemesters.length);
 
-  const semesterIdAndCourseCnt = await pMap(recentSemesters, async ({ id }) => {
-    const courseCnt = await client
-      .get(endpoints.COURSES, {
-        searchParams: {
-          $skip: 0,
-          $top: 1,
-          $filter: `termId-eq=${id}`,
-        },
-      })
-      .json<CoursesResponse>()
-      .then((data) => data.totalCount);
-    return { id, courseCnt };
-  });
+  const semesterIdAndCourseCnt = await pMap(
+    recentSemesters,
+    async ({ id }) => {
+      const courseCnt = await client
+        .get(endpoints.COURSES, {
+          searchParams: {
+            $skip: 0,
+            $top: 1,
+            $filter: `termId-eq=${id}`,
+          },
+        })
+        .json<CoursesResponse>()
+        .then((data) => data.totalCount);
+      return { id, courseCnt };
+    },
+    { concurrency: CONCURRENCY_LIMIT }
+  );
   console.log(
     "#Courses:",
     semesterIdAndCourseCnt.reduce((acc, { courseCnt }) => acc + courseCnt, 0)
