@@ -24,9 +24,17 @@ const EXAM_COURSE_TYPE = "FA";
 /** Tells the RWTHonline admins who is fetching the data and where to reach out. */
 const USER_AGENT =
   "CAMPUSoffline/1.0 (+https://github.com/septatrix/CAMPUSoffline)";
+/**
+ * Address of whoever runs the fetch, sent as the From header.
+ * Read from the environment so no address has to be committed.
+ */
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL;
 const client = ky.create({
   prefix: endpoints.REST_API,
-  headers: { "User-Agent": USER_AGENT },
+  headers: {
+    "User-Agent": USER_AGENT,
+    ...(CONTACT_EMAIL && { From: CONTACT_EMAIL }),
+  },
 });
 
 function range(start: number, stop: number, step = 1) {

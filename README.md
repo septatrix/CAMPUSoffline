@@ -105,6 +105,11 @@ pnpm run data:transform    # build the per-semester studiesTree.json and courses
 pnpm run data:build-db     # build public/db/courses.sqlite3
 ```
 
+The fetch identifies itself to RWTHonline via its User-Agent.
+Set `CONTACT_EMAIL` to also send your address as the `From` header,
+so the admins can reach you instead of blocking the scraper;
+in CI it is taken from the repository secret of the same name.
+
 ### Run
 
 ```bash
