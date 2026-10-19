@@ -18,7 +18,7 @@ const EXAM_PAGE_SIZE = 500;
  * Kept low to not put a burden on RWTHonline,
  * which also starts blocking CI runners when hammered.
  */
-const CONCURRENCY_LIMIT = 8;
+const CONCURRENCY_LIMIT = 32;
 /** Course type key of a "Fach-/Modulprüfung", i.e. an exam. */
 const EXAM_COURSE_TYPE = "FA";
 /** Tells the RWTHonline admins who is fetching the data and where to reach out. */
