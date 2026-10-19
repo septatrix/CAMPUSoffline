@@ -45,7 +45,10 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Fetch data
+        env:
+          CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
         run: pnpm run data
+
       - name: Build page
         env:
           NUXT_PUBLIC_CI_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
