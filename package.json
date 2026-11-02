@@ -15,13 +15,13 @@
   },
   "dependencies": {
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
-    "nuxt": "^4.6.2",
+    "nuxt": "^4.6.3",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
-    "glob": "^13.0.6",
+    "glob": "^14.0.3",
     "ky": "^2.2.0",
     "object.groupby": "^1.0.3",
     "p-limit": "^7.3.3",
