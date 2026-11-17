@@ -17,11 +17,11 @@
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
     "nuxt": "^4.6.4",
     "vue": "^3.5.45",
-    "vue-router": "^5.4.0"
+    "vue-router": "^5.5.0"
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
-    "glob": "^14.0.4",
+    "glob": "^14.0.6",
     "ky": "^2.2.0",
     "object.groupby": "^1.0.3",
     "p-limit": "^7.3.3",
