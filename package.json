@@ -16,8 +16,8 @@
   "dependencies": {
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
     "nuxt": "^4.6.4",
-    "vue": "^3.5.45",
-    "vue-router": "^5.5.0"
+    "vue": "^3.5.46",
+    "vue-router": "^5.5.1"
   },
   "devDependencies": {
     "@types/object.groupby": "^1.0.4",
